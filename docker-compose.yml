@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: neople-game-analytics-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-neople}
+      POSTGRES_USER: ${POSTGRES_USER:-neople}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-neople_local_only}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - neople_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-neople} -d ${POSTGRES_DB:-neople}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  neople_postgres_data:
+

@@ -20,6 +20,8 @@ Neople REST API
     -> data/raw JSON 원천 보관
     -> Python 정제
     -> data/processed CSV
+    -> PostgreSQL 적재
+    -> SQL 분석 View
     -> Power BI 모델·대시보드
 ```
 
@@ -44,6 +46,8 @@ python -m src.collect --game all --dry-run
 python -m src.collect --game dnf
 python -m src.collect --game cyphers
 python -m src.transform
+docker compose up -d db
+python -m src.load_postgres --mode replace
 ```
 
 실제 수집 전에는 반드시 `--dry-run`으로 대상과 호출 규모를 확인합니다.
@@ -59,9 +63,29 @@ API Key는 이 채팅이나 GitHub에 올리지 않습니다. `.env`는 `.gitign
 - 공통 가이드: https://developers.neople.co.kr/contents/guide/pages/all
 - 이용 약관: https://developers.neople.co.kr/contents/policy
 
+## PostgreSQL과 Power BI
+
+`docker compose up -d db`로 로컬 PostgreSQL을 실행한 뒤, `src.load_postgres`가 `data/processed`의 CSV를 `neople` 스키마에 적재합니다. 적재가 완료되면 `sql/03_views.sql`의 분석용 View가 생성됩니다.
+
+Power BI Desktop에서 `Get data > PostgreSQL database`를 선택해 다음 View를 불러옵니다.
+
+- `neople.vw_dnf_job_growth`
+- `neople.vw_dnf_auction_summary`
+- `neople.vw_dnf_latest_character`
+- `neople.vw_cyphers_character_winrate`
+- `neople.vw_cyphers_item_performance`
+
+이제 갱신 순서는 다음과 같습니다.
+
+```text
+API 수집 -> transform -> PostgreSQL 적재 -> Power BI Refresh
+```
+
+Power BI `.pbix` 파일은 Power BI Desktop에서 위 View를 최초 연결한 뒤 저장합니다.
+
 ## Power BI 모델
 
-Power BI에서는 `powerbi/model.md`의 스타 스키마를 기준으로 CSV를 불러옵니다. 분석용 측정값은 `powerbi/measures.dax`에 정리했습니다.
+Power BI에서는 `powerbi/model.md`의 View 연결 기준을 사용합니다. 분석용 측정값은 `powerbi/measures.dax`에 정리했습니다.
 
 권장 페이지:
 
@@ -77,4 +101,3 @@ Power BI에서는 `powerbi/model.md`의 스타 스키마를 기준으로 CSV를 
 - 던파 경매장 시세는 제공되는 최근 거래 데이터 범위 안에서 분석합니다.
 - 사이퍼즈 매칭 데이터는 조회 기간·갱신 주기 제한을 명시합니다.
 - API 표본으로 전체 이용자 모집단이나 인과관계를 단정하지 않습니다.
-

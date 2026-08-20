@@ -173,7 +173,7 @@ def transform_dnf() -> None:
                     "event_date": first(row, "date", "eventDate"),
                     "event_code": first(row, "code"),
                     "event_name": first(row, "name"),
-                    "event_data": str(first(row, "data", default={})),
+                    "event_data": json.dumps(first(row, "data", default={}), ensure_ascii=False),
                 })
 
     write_csv(characters, "dnf_character_snapshot.csv")
