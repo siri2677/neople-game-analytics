@@ -184,6 +184,8 @@ def transform_dnf() -> None:
 
 def transform_cyphers() -> None:
     envelopes = read_envelopes("cyphers")
+    characters: list[dict[str, Any]] = []
+    rankings: list[dict[str, Any]] = []
     players: list[dict[str, Any]] = []
     matches: list[dict[str, Any]] = []
     details: list[dict[str, Any]] = []
@@ -195,7 +197,46 @@ def transform_cyphers() -> None:
         payload = envelope.get("payload", {})
         collected_at = envelope.get("collected_at")
         params = envelope.get("params", {})
-        if endpoint == "players":
+        if endpoint == "characters":
+            for row in nested_rows(payload, ("rows", "characters")):
+                characters.append({
+                    "game_code": "CYPHERS",
+                    "collected_at": collected_at,
+                    "character_id": first(row, "characterId"),
+                    "character_name": first(row, "characterName", "name"),
+                })
+        elif endpoint == "character_ranking":
+            for row in nested_rows(payload, ("rows", "ranking")):
+                ranking_type = params.get("rankingType")
+                ranking_value = first(
+                    row,
+                    "value",
+                    "score",
+                    "point",
+                    "rankingValue",
+                    ranking_type or "value",
+                )
+                rankings.append({
+                    "game_code": "CYPHERS",
+                    "collected_at": collected_at,
+                    "character_id": params.get("characterId") or first(row, "characterId"),
+                    "character_name": params.get("characterName") or first(row, "characterName"),
+                    "ranking_type": ranking_type,
+                    "rank": first(row, "rank", "ranking", "position"),
+                    "player_id": first(row, "playerId"),
+                    "nickname": first(row, "nickname", "playerName"),
+                    "ranking_value": ranking_value,
+                    "raw_json": json.dumps(row, ensure_ascii=False),
+                })
+        elif endpoint == "rating_ranking":
+            for row in nested_rows(payload, ("rows", "ranking")):
+                players.append({
+                    "game_code": "CYPHERS",
+                    "collected_at": collected_at,
+                    "player_id": first(row, "playerId"),
+                    "nickname": first(row, "nickname", "playerName"),
+                })
+        elif endpoint == "players":
             for row in nested_rows(payload, ("rows",)):
                 players.append({
                     "game_code": "CYPHERS",
@@ -227,6 +268,8 @@ def transform_cyphers() -> None:
             performance.extend(parsed_performance)
             items.extend(parsed_items)
 
+    write_csv(characters, "cyphers_character.csv")
+    write_csv(rankings, "cyphers_character_ranking.csv")
     write_csv(players, "cyphers_player.csv")
     write_csv(matches, "cyphers_match.csv")
     write_csv(details, "cyphers_match_detail_raw.csv")
@@ -254,6 +297,11 @@ def write_csv(rows: list[dict[str, Any]], filename: str) -> None:
             "event_name", "event_data",
         ],
         "cyphers_player.csv": ["game_code", "collected_at", "player_id", "nickname"],
+        "cyphers_character.csv": ["game_code", "collected_at", "character_id", "character_name"],
+        "cyphers_character_ranking.csv": [
+            "game_code", "collected_at", "character_id", "character_name", "ranking_type",
+            "rank", "player_id", "nickname", "ranking_value", "raw_json",
+        ],
         "cyphers_match.csv": [
             "game_code", "collected_at", "player_id", "match_id", "match_date", "game_type",
         ],

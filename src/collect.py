@@ -1,7 +1,8 @@
-"""Collect a bounded, reproducible sample from DNF and Cyphers APIs.
+"""Collect bounded, reproducible DNF and Cyphers API data.
 
-The collector intentionally requires an explicit target list or bounded fame bands.
-It does not crawl the whole service.
+Cyphers collection does not require user-supplied players. It collects the full
+character list and official character rankings, then uses the top N global rating
+players as an explicitly labelled sample for match/item analysis.
 """
 
 from __future__ import annotations
@@ -88,29 +89,72 @@ def collect_dnf(client: NeopleClient, dry_run: bool = False) -> None:
 
 
 def collect_cyphers(client: NeopleClient, dry_run: bool = False) -> None:
-    player_ids = csv_env("CYPHERS_PLAYER_IDS")
-    nicknames = csv_env("CYPHERS_NICKNAMES")
+    ranking_types = csv_env(
+        "CYPHERS_CHARACTER_RANKING_TYPES",
+        "winRate,winCount,killCount,assistCount,exp",
+    )
+    ranking_limit = int(env("CYPHERS_RANKING_LIMIT", "1000"))
+    top_player_limit = int(env("CYPHERS_TOP_PLAYER_LIMIT", "50"))
     game_type = env("CYPHERS_GAME_TYPE", "rating")
     end_date = env("CYPHERS_END_DATE") or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
     start_date = env("CYPHERS_START_DATE") or (
         datetime.now(timezone.utc) - timedelta(days=30)
     ).strftime("%Y-%m-%d %H:%M")
     match_limit = int(env("CYPHERS_MATCH_LIMIT", "50"))
-    detail_limit = int(env("CYPHERS_MATCH_DETAIL_LIMIT", "100"))
+    detail_limit = int(env("CYPHERS_MATCH_DETAIL_LIMIT", "300"))
 
-    for nickname in nicknames:
-        params = {"nickname": nickname, "wordType": "match", "limit": 10}
-        if dry_run:
-            print("Cyphers player search", params)
-        else:
-            payload = client.get("/cy/players", params)
-            write_raw("cyphers", "players", f"player_search_{nickname}", params, payload)
-            for player in rows(payload, "rows"):
-                if player.get("playerId") and player["playerId"] not in player_ids:
-                    player_ids.append(player["playerId"])
+    character_rows: list[dict[str, Any]] = []
+    character_params: dict[str, Any] = {"limit": 1000}
+    if dry_run:
+        print("Cyphers character catalog", "/cy/characters", character_params)
+    else:
+        character_payload = client.get("/cy/characters", character_params)
+        write_raw("cyphers", "characters", "characters", character_params, character_payload)
+        character_rows = rows(character_payload, "rows", "characters")
 
-    if not player_ids:
-        print("Cyphers: no player IDs configured; set CYPHERS_PLAYER_IDS or CYPHERS_NICKNAMES")
+    for character in character_rows:
+        character_id = character.get("characterId")
+        if not character_id:
+            continue
+        for ranking_type in ranking_types:
+            params = {
+                "characterId": character_id,
+                "characterName": character.get("characterName"),
+                "rankingType": ranking_type,
+                "offset": 0,
+                "limit": ranking_limit,
+            }
+            endpoint = f"/cy/ranking/characters/{character_id}/{ranking_type}"
+            if dry_run:
+                print("Cyphers character ranking", endpoint, params)
+            else:
+                payload = client.get(endpoint, {"offset": 0, "limit": ranking_limit})
+                write_raw(
+                    "cyphers",
+                    "character_ranking",
+                    f"character_ranking_{character_id}_{ranking_type}",
+                    params,
+                    payload,
+                )
+
+    player_ids: list[str] = []
+    rating_params = {"offset": 0, "limit": top_player_limit}
+    if dry_run:
+        print("Cyphers global rating ranking", "/cy/ranking/ratingpoint", rating_params)
+    else:
+        rating_payload = client.get("/cy/ranking/ratingpoint", rating_params)
+        write_raw("cyphers", "rating_ranking", "rating_ranking", rating_params, rating_payload)
+        for player in rows(rating_payload, "rows", "ranking"):
+            player_id = player.get("playerId")
+            if player_id and player_id not in player_ids:
+                player_ids.append(player_id)
+
+    if dry_run:
+        print(
+            "Cyphers match sample: top",
+            top_player_limit,
+            "global rating players; match IDs are discovered from their recent records",
+        )
         return
 
     match_ids: list[str] = []

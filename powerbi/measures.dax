@@ -36,3 +36,11 @@ AVERAGE ( vw_cyphers_character_winrate[average_assists] )
 Cyphers Item Combination Count =
 COUNTROWS ( vw_cyphers_item_performance )
 
+Cyphers Ranked Players =
+SUM ( vw_cyphers_character_ranking_summary[ranked_player_count] )
+
+Cyphers Best Character Rank =
+MIN ( vw_cyphers_character_ranking_summary[best_rank] )
+
+Cyphers Median Ranking Value =
+MEDIAN ( vw_cyphers_character_ranking_summary[median_ranking_value] )

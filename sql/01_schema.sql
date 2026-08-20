@@ -52,6 +52,26 @@ CREATE TABLE IF NOT EXISTS neople.dnf_timeline (
     event_data       JSONB
 );
 
+CREATE TABLE IF NOT EXISTS neople.cyphers_character (
+    game_code        TEXT NOT NULL DEFAULT 'CYPHERS',
+    collected_at     TIMESTAMPTZ,
+    character_id     TEXT,
+    character_name   TEXT
+);
+
+CREATE TABLE IF NOT EXISTS neople.cyphers_character_ranking (
+    game_code        TEXT NOT NULL DEFAULT 'CYPHERS',
+    collected_at     TIMESTAMPTZ,
+    character_id     TEXT,
+    character_name   TEXT,
+    ranking_type     TEXT,
+    rank             INTEGER,
+    player_id        TEXT,
+    nickname         TEXT,
+    ranking_value    NUMERIC,
+    raw_json         JSONB
+);
+
 CREATE TABLE IF NOT EXISTS neople.cyphers_player (
     game_code        TEXT NOT NULL DEFAULT 'CYPHERS',
     collected_at     TIMESTAMPTZ,
@@ -100,4 +120,5 @@ CREATE INDEX IF NOT EXISTS ix_dnf_auction_item_date
     ON neople.dnf_auction_sold (item_id, sold_date);
 CREATE INDEX IF NOT EXISTS ix_cyphers_performance_character
     ON neople.cyphers_player_match_performance (character_id);
-
+CREATE INDEX IF NOT EXISTS ix_cyphers_ranking_character_type
+    ON neople.cyphers_character_ranking (character_id, ranking_type, rank);

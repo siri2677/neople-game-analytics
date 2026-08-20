@@ -45,6 +45,19 @@ TABLES: list[tuple[str, str, list[str]]] = [
             "event_name", "event_data",
         ],
     ),
+    (
+        "cyphers_character.csv",
+        "cyphers_character",
+        ["game_code", "collected_at", "character_id", "character_name"],
+    ),
+    (
+        "cyphers_character_ranking.csv",
+        "cyphers_character_ranking",
+        [
+            "game_code", "collected_at", "character_id", "character_name", "ranking_type",
+            "rank", "player_id", "nickname", "ranking_value", "raw_json",
+        ],
+    ),
     ("cyphers_player.csv", "cyphers_player", ["game_code", "collected_at", "player_id", "nickname"]),
     (
         "cyphers_match.csv",

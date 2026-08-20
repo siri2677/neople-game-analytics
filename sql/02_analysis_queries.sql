@@ -82,8 +82,21 @@ FROM neople.dnf_timeline
 GROUP BY character_id, event_code
 ORDER BY event_count DESC;
 
--- 6. Cyphers: character win rate. Adjust the result mapping after checking the
--- exact API response labels in cyphers_player_match_performance.
+-- 6. Cyphers: official character ranking distribution.
+SELECT
+    character_id,
+    MAX(character_name) AS character_name,
+    ranking_type,
+    COUNT(*) AS ranked_players,
+    MIN(rank) AS best_rank,
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ranking_value) AS median_value,
+    MAX(ranking_value) AS max_value
+FROM neople.cyphers_character_ranking
+GROUP BY character_id, ranking_type
+ORDER BY ranking_type, median_value DESC NULLS LAST;
+
+-- 7. Cyphers: character win rate within the automatically collected top-rating
+-- player sample. This is not a whole-population estimate.
 SELECT
     character_id,
     MAX(character_name) AS character_name,
@@ -100,7 +113,7 @@ GROUP BY character_id
 HAVING COUNT(*) >= 10
 ORDER BY win_rate_pct DESC;
 
--- 7. Cyphers: character-item usage and performance.
+-- 8. Cyphers: character-item usage and performance within the same sample.
 SELECT
     p.character_id,
     MAX(p.character_name) AS character_name,
@@ -117,4 +130,3 @@ JOIN neople.cyphers_match_item i
 GROUP BY p.character_id, i.item_id
 HAVING COUNT(DISTINCT p.match_id) >= 10
 ORDER BY p.character_id, win_rate_pct DESC;
-

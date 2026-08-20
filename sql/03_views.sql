@@ -64,6 +64,20 @@ SELECT
 FROM item_usage u
 CROSS JOIN character_counts cc;
 
+CREATE OR REPLACE VIEW neople.vw_cyphers_character_ranking_summary AS
+SELECT
+    character_id,
+    MAX(character_name) AS character_name,
+    ranking_type,
+    COUNT(*) AS ranked_player_count,
+    MIN(rank) AS best_rank,
+    ROUND(AVG(ranking_value), 2) AS average_ranking_value,
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ranking_value) AS median_ranking_value,
+    MAX(ranking_value) AS max_ranking_value
+FROM neople.cyphers_character_ranking
+WHERE character_id IS NOT NULL
+GROUP BY character_id, ranking_type;
+
 CREATE OR REPLACE VIEW neople.vw_cyphers_character_winrate AS
 SELECT
     character_id,
@@ -103,4 +117,3 @@ JOIN neople.cyphers_match_item i
  AND i.character_id = p.character_id
 WHERE p.character_id IS NOT NULL
 GROUP BY p.character_id, i.item_id;
-

@@ -7,6 +7,7 @@ vw_dnf_latest_character
 vw_dnf_job_growth
 vw_dnf_auction_summary
 vw_dnf_equipment_adoption
+vw_cyphers_character_ranking_summary
 vw_cyphers_character_winrate
 vw_cyphers_item_performance
 ```
@@ -51,15 +52,17 @@ vw_cyphers_item_performance
 
 ### 사이퍼즈 캐릭터
 
-- View: `vw_cyphers_character_winrate`
-- 캐릭터별 승률: Bar chart
-- 경기 수 대비 승률: Scatter chart
-- 평균 킬·데스·도움: Matrix
+- 공식 전체 랭킹 View: `vw_cyphers_character_ranking_summary`
+- `ranking_type`을 기준으로 승률·승리·킬·도움·경험치 비교
+- `best_rank`, `median_ranking_value`, `max_ranking_value` 사용
+- 표본 기반 성과 View: `vw_cyphers_character_winrate`
+- 표본 경기 수 대비 승률: Scatter chart
 
 ### 사이퍼즈 아이템
 
 - View: `vw_cyphers_item_performance`
 - 캐릭터·아이템 조합별 승률: Matrix
+- 공식 통합 랭킹 상위 N명 표본이라는 설명을 함께 표시합니다.
 - 표본 경기 수가 적은 조합은 필터링합니다.
 
 ## 새로 고침 순서
@@ -70,4 +73,3 @@ python -m src.transform
 python -m src.load_postgres --mode replace
 Power BI > Refresh
 ```
-
