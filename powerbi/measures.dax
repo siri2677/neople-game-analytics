@@ -1,0 +1,53 @@
+-- Create these measures after importing the processed CSV tables.
+
+DNF Character Count =
+DISTINCTCOUNT ( dnf_character_snapshot[character_id] )
+
+DNF Average Fame =
+AVERAGE ( dnf_character_snapshot[fame] )
+
+DNF Median Fame =
+MEDIAN ( dnf_character_snapshot[fame] )
+
+DNF Equipment Adoption Rate =
+DIVIDE (
+    DISTINCTCOUNT ( dnf_equipment[character_id] ),
+    [DNF Character Count]
+)
+
+DNF Median Auction Price =
+MEDIAN ( dnf_auction_sold[unit_price] )
+
+DNF Auction Observations =
+COUNTROWS ( dnf_auction_sold )
+
+DNF Auction Price Std Dev =
+STDEV.P ( dnf_auction_sold[unit_price] )
+
+Cyphers Matches =
+DISTINCTCOUNT ( cyphers_player_match_performance[match_id] )
+
+Cyphers Wins =
+CALCULATE (
+    COUNTROWS ( cyphers_player_match_performance ),
+    FILTER (
+        cyphers_player_match_performance,
+        LOWER ( cyphers_player_match_performance[result] ) IN { "win", "승리", "true" }
+    )
+)
+
+Cyphers Win Rate =
+DIVIDE ( [Cyphers Wins], COUNTROWS ( cyphers_player_match_performance ) )
+
+Cyphers Average Kills =
+AVERAGE ( cyphers_player_match_performance[kill_count] )
+
+Cyphers Average Assists =
+AVERAGE ( cyphers_player_match_performance[assist_count] )
+
+Cyphers Item Adoption Rate =
+DIVIDE (
+    DISTINCTCOUNT ( cyphers_match_item[match_id] ),
+    [Cyphers Matches]
+)
+

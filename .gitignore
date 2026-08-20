@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+data/raw/*.json
+data/raw/**/*.json
+data/processed/*.csv
+data/processed/*.parquet
+*.pbix
+
