@@ -9,6 +9,12 @@ AVERAGE ( vw_dnf_latest_character[fame] )
 DNF Median Fame =
 MEDIAN ( vw_dnf_latest_character[fame] )
 
+DNF Median Fame Gap vs All =
+AVERAGE ( vw_dnf_job_growth[median_gap_vs_all] )
+
+DNF Fame IQR =
+AVERAGE ( vw_dnf_job_growth[fame_iqr] )
+
 DNF Median Auction Price =
 MEDIAN ( vw_dnf_auction_summary[median_unit_price] )
 
@@ -17,6 +23,9 @@ SUM ( vw_dnf_auction_summary[observation_count] )
 
 DNF Auction Price Std Dev =
 AVERAGE ( vw_dnf_auction_summary[price_stddev] )
+
+DNF Auction Price CV =
+AVERAGE ( vw_dnf_auction_summary[price_cv_pct] )
 
 Cyphers Matches =
 SUM ( vw_cyphers_character_winrate[match_count] )
@@ -35,6 +44,15 @@ AVERAGE ( vw_cyphers_character_winrate[average_assists] )
 
 Cyphers Item Combination Count =
 COUNTROWS ( vw_cyphers_item_performance )
+
+Cyphers Reliable Item Combination Count =
+CALCULATE (
+    COUNTROWS ( vw_cyphers_item_performance ),
+    vw_cyphers_item_performance[reliability_flag] = "usable"
+)
+
+Cyphers Item Win Rate Lift =
+AVERAGE ( vw_cyphers_item_performance[win_rate_delta_vs_character_pct] )
 
 Cyphers Ranked Players =
 SUM ( vw_cyphers_character_ranking_summary[ranked_player_count] )

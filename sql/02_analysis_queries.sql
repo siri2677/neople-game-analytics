@@ -21,7 +21,9 @@ SELECT
     job_grow_name,
     COUNT(DISTINCT character_id) AS characters,
     ROUND(AVG(fame), 1) AS avg_fame,
+    PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY fame) AS p25_fame,
     PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY fame) AS median_fame,
+    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY fame) AS p75_fame,
     MIN(fame) AS min_fame,
     MAX(fame) AS max_fame
 FROM neople.dnf_character_snapshot
@@ -62,6 +64,7 @@ SELECT
     PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY unit_price) AS median_unit_price,
     AVG(unit_price) AS avg_unit_price,
     STDDEV_POP(unit_price) AS price_stddev,
+    100.0 * STDDEV_POP(unit_price) / NULLIF(AVG(unit_price), 0) AS price_cv_pct,
     MIN(sold_date) AS first_sold_date,
     MAX(sold_date) AS last_sold_date
 FROM neople.dnf_auction_sold
@@ -114,19 +117,40 @@ HAVING COUNT(*) >= 10
 ORDER BY win_rate_pct DESC;
 
 -- 8. Cyphers: character-item usage and performance within the same sample.
+WITH character_baseline AS (
+    SELECT
+        character_id,
+        AVG(CASE WHEN LOWER(result) IN ('win', '승리', 'true') THEN 1.0 ELSE 0.0 END) * 100
+            AS character_win_rate_pct
+    FROM neople.cyphers_player_match_performance
+    GROUP BY character_id
+), item_performance AS (
+    SELECT
+        p.character_id,
+        MAX(p.character_name) AS character_name,
+        i.item_id,
+        MAX(i.item_name) AS item_name,
+        COUNT(DISTINCT p.match_id) AS matches,
+        AVG(p.kill_count) AS avg_kills,
+        AVG(p.assist_count) AS avg_assists,
+        AVG(CASE WHEN LOWER(p.result) IN ('win', '승리', 'true') THEN 1.0 ELSE 0.0 END) * 100 AS win_rate_pct
+    FROM neople.cyphers_player_match_performance p
+    JOIN neople.cyphers_match_item i
+      ON i.match_id = p.match_id
+     AND i.character_id = p.character_id
+    GROUP BY p.character_id, i.item_id
+    HAVING COUNT(DISTINCT p.match_id) >= 10
+)
 SELECT
-    p.character_id,
-    MAX(p.character_name) AS character_name,
-    i.item_id,
-    MAX(i.item_name) AS item_name,
-    COUNT(DISTINCT p.match_id) AS matches,
-    AVG(p.kill_count) AS avg_kills,
-    AVG(p.assist_count) AS avg_assists,
-    AVG(CASE WHEN LOWER(p.result) IN ('win', '승리', 'true') THEN 1.0 ELSE 0.0 END) * 100 AS win_rate_pct
-FROM neople.cyphers_player_match_performance p
-JOIN neople.cyphers_match_item i
-  ON i.match_id = p.match_id
- AND i.character_id = p.character_id
-GROUP BY p.character_id, i.item_id
-HAVING COUNT(DISTINCT p.match_id) >= 10
-ORDER BY p.character_id, win_rate_pct DESC;
+    item_performance.*,
+    item_performance.win_rate_pct - character_baseline.character_win_rate_pct
+        AS win_rate_delta_vs_character_pct
+FROM item_performance
+JOIN character_baseline USING (character_id)
+ORDER BY character_id, win_rate_pct DESC;
+
+-- 9. Cyphers: official character ranking versus the sampled match result.
+SELECT *
+FROM neople.vw_cyphers_character_positioning
+WHERE sample_match_count >= 10
+ORDER BY official_median_win_rate_value DESC NULLS LAST;

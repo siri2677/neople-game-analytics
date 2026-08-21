@@ -78,6 +78,7 @@ Power BI Desktop에서 `Get data > PostgreSQL database`를 선택해 다음 View
 - `neople.vw_dnf_latest_character`
 - `neople.vw_cyphers_character_winrate`
 - `neople.vw_cyphers_character_ranking_summary`
+- `neople.vw_cyphers_character_positioning`
 - `neople.vw_cyphers_item_performance`
 
 이제 갱신 순서는 다음과 같습니다.
@@ -88,17 +89,19 @@ API 수집 -> transform -> PostgreSQL 적재 -> Power BI Refresh
 
 Power BI `.pbix` 파일은 Power BI Desktop에서 위 View를 최초 연결한 뒤 저장합니다.
 
-## Power BI 모델
+## 분석가형 Power BI 구성
 
 Power BI에서는 `powerbi/model.md`의 View 연결 기준을 사용합니다. 분석용 측정값은 `powerbi/measures.dax`에 정리했습니다.
 
 권장 페이지:
 
-1. **Executive Summary**: 두 게임 수집 건수·분석 기간·데이터 품질
-2. **던파 성장 분석**: 명성 분포, 직업별 중앙값, 타임라인 이벤트
-3. **던파 경매장 분석**: 아이템별 거래가, 중앙값, 변동성
-4. **사이퍼즈 캐릭터 분석**: 공식 랭킹의 승률·승리·킬·도움·경험치
-5. **사이퍼즈 아이템 분석**: 통합 랭킹 상위 N명 표본의 캐릭터·아이템 조합과 성과
+1. **분석 개요**: 수집 범위, 표본 정의, 확인 가능한 사실과 한계
+2. **던파 성장**: “직업별 성장 격차는 장비 채택 차이와 함께 나타나는가?”
+3. **던파 경매장**: “고가 아이템은 가격도 불안정한가?”
+4. **사이퍼즈 캐릭터**: “공식 랭킹과 상위 랭커 표본의 성과는 일치하는가?”
+5. **사이퍼즈 아이템**: “아이템 조합은 캐릭터 기준 승률보다 높은가?”
+
+각 페이지는 `분석 질문 → 지표 정의 → SQL 검증 → 관찰된 패턴 → 해석·한계` 순서를 유지합니다. 예시 수치는 목업일 뿐이며, 실제 결론은 API 수집 후 갱신된 View를 기준으로 작성합니다.
 
 ## 분석상 한계
 

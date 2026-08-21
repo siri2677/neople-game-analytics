@@ -9,10 +9,11 @@ vw_dnf_auction_summary
 vw_dnf_equipment_adoption
 vw_cyphers_character_ranking_summary
 vw_cyphers_character_winrate
+vw_cyphers_character_positioning
 vw_cyphers_item_performance
 ```
 
-이번 포트폴리오의 핵심 집계 로직은 Power BI 시각화가 아니라 PostgreSQL View에 둡니다. Power BI는 필터·카드·차트 표현과 탐색에 집중합니다.
+이번 포트폴리오의 핵심 집계 로직은 Power BI 시각화가 아니라 PostgreSQL View에 둡니다. Power BI는 분석 질문별로 증거를 배치하고, 사용자가 표본·기간·직업을 바꿔가며 결론을 검증하는 데 사용합니다.
 
 ## 연결 방법
 
@@ -22,48 +23,42 @@ vw_cyphers_item_performance
 4. Navigator에서 `neople` 스키마의 View를 선택합니다.
 5. Import 모드로 불러온 뒤 `powerbi/measures.dax`의 측정값을 추가합니다.
 
-## 페이지별 View와 시각화
+## 분석 질문별 페이지 설계
 
-### Executive Summary
+### 1. 분석 개요
 
-- `vw_dnf_latest_character`: 캐릭터 수, 평균 명성
-- `vw_cyphers_character_winrate`: 전체 경기 수, 평균 승률
-- `vw_dnf_auction_summary`: 아이템 거래 관측 수
+- 질문: 이번 데이터로 어디까지 말할 수 있는가?
+- 보여줄 것: 수집 기간, 캐릭터·경기·거래 관측 수, 공식 랭킹과 상위 랭커 표본의 구분
+- 결론 영역: API 표본으로 확인된 사실과 확인할 수 없는 사실을 분리
 
-### DNF 성장
+### 2. 던파 성장 — 직업별 성장 격차는 장비 채택 차이와 함께 나타나는가?
 
-- View: `vw_dnf_job_growth`
-- 직업별 캐릭터 수: Column chart
-- 직업별 중앙 명성: Bar chart
-- 최소·최대 명성: Tooltip 또는 Table
+- View: `vw_dnf_job_growth`, `vw_dnf_equipment_adoption`
+- 핵심 지표: 직업별 중앙 명성, 전체 중앙값 대비 격차, 명성 IQR, 장비 채택률
+- 시각화: 직업별 명성 분포와 `채택률 → 중앙 명성` 산점도
+- 해석: 상관관계로 관찰하되 장비가 성장을 일으켰다고 인과 해석하지 않음
 
-### DNF 경매장
+### 3. 던파 경매장 — 고가 아이템은 가격도 불안정한가?
 
 - View: `vw_dnf_auction_summary`
-- 아이템별 중앙 거래가: Bar chart
-- 거래 관측 수와 가격 변동성: Scatter chart
-- 거래 기간: Slicer
+- 핵심 지표: 중앙 거래가, IQR, 가격 표준편차, 변동계수(CV), 거래 관측 수
+- 시각화: X축 중앙 거래가, Y축 가격 CV, 점 크기 거래 관측 수인 2x2 포지셔닝
+- 해석: `고가·고변동`, `고가·안정`, `저가·고변동`, `저가·안정`으로 아이템군을 분류
 
-### DNF 장비
+### 4. 사이퍼즈 캐릭터 — 공식 랭킹과 상위 랭커 표본의 성과는 일치하는가?
 
-- View: `vw_dnf_equipment_adoption`
-- 직업별 아이템 채택률: Matrix
-- 채택 캐릭터 수: Bar chart
+- View: `vw_cyphers_character_positioning`
+- 공식 데이터: `official_best_rank`, `official_median_win_rate_value`
+- 표본 데이터: `sample_win_rate_pct`, `sample_match_count`
+- 시각화: 공식 승률 값과 상위 랭커 표본 승률의 산점도, 표본 수 10경기 미만 제외
+- 해석: 두 지표가 어긋나는 캐릭터를 후속 검증 대상으로 제시
 
-### 사이퍼즈 캐릭터
-
-- 공식 전체 랭킹 View: `vw_cyphers_character_ranking_summary`
-- `ranking_type`을 기준으로 승률·승리·킬·도움·경험치 비교
-- `best_rank`, `median_ranking_value`, `max_ranking_value` 사용
-- 표본 기반 성과 View: `vw_cyphers_character_winrate`
-- 표본 경기 수 대비 승률: Scatter chart
-
-### 사이퍼즈 아이템
+### 5. 사이퍼즈 아이템 — 특정 아이템 조합은 캐릭터 기준 승률보다 높은가?
 
 - View: `vw_cyphers_item_performance`
-- 캐릭터·아이템 조합별 승률: Matrix
-- 공식 통합 랭킹 상위 N명 표본이라는 설명을 함께 표시합니다.
-- 표본 경기 수가 적은 조합은 필터링합니다.
+- 핵심 지표: 조합 승률, 캐릭터 기준 승률 대비 차이, 경기 수, 신뢰 플래그
+- 시각화: X축 경기 수, Y축 기준 대비 승률 차이, `usable(30+)`와 `caution(10~29)` 구분
+- 해석: 표본 수가 충분한 양의 차이만 후속 테스트 후보로 제시
 
 ## 새로 고침 순서
 
@@ -73,3 +68,7 @@ python -m src.transform
 python -m src.load_postgres --mode replace
 Power BI > Refresh
 ```
+
+## 분석가 포트폴리오 산출물
+
+각 페이지는 `질문 → 지표 정의 → SQL View → 시각적 패턴 → 해석과 한계` 순서로 구성합니다. 단순히 차트를 나열하지 않고, 같은 질문을 SQL 쿼리로 재현할 수 있도록 `sql/02_analysis_queries.sql`에 검증 쿼리를 함께 둡니다.
