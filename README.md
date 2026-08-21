@@ -36,21 +36,25 @@ cd outputs/neople-game-analytics
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-Copy-Item .env.example .env
 ```
 
-`.env`에 API Key와 수집 대상을 설정한 뒤:
+`.env.example`을 `.env`로 복사하고, `.env`의 `NEOPLE_API_KEY`에 본인의 API Key를 입력합니다.
 
 ```powershell
-python -m src.collect --game all --dry-run
-python -m src.collect --game dnf
-python -m src.collect --game cyphers
-python -m src.transform
+Copy-Item .env.example .env
+# .env에 API Key 입력
+
 docker compose up -d db
+python -m src.collect --game all
+python -m src.transform
 python -m src.load_postgres --mode replace
 ```
 
-실제 수집 전에는 반드시 `--dry-run`으로 대상과 호출 규모를 확인합니다.
+처음 실행하거나 API 호출 규모를 확인하려면 실제 수집 전에 다음 명령을 사용할 수 있습니다.
+
+```powershell
+python -m src.collect --game all --dry-run
+```
 
 ## API Key 보안
 
