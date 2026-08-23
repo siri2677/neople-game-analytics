@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS neople.dnf_character_snapshot (
 CREATE TABLE IF NOT EXISTS neople.dnf_equipment (
     game_code        TEXT NOT NULL DEFAULT 'DNF',
     collected_at     TIMESTAMPTZ,
+    server_id        TEXT,
     character_id     TEXT,
     item_id          TEXT,
     item_name        TEXT,
@@ -45,6 +46,7 @@ CREATE TABLE IF NOT EXISTS neople.dnf_auction_sold (
 CREATE TABLE IF NOT EXISTS neople.dnf_timeline (
     game_code        TEXT NOT NULL DEFAULT 'DNF',
     collected_at     TIMESTAMPTZ,
+    server_id        TEXT,
     character_id     TEXT,
     event_date       TIMESTAMPTZ,
     event_code       TEXT,

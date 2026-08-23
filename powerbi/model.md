@@ -15,8 +15,12 @@ dnf_character_snapshot[character_id]
   1 ─── * dnf_timeline[character_id]
 
 cyphers_player_match_performance[match_id]
-  1 ─── * cyphers_match_item[match_id]
+  * ─── * cyphers_match_item[match_id]
 ```
+
+`cyphers_player_match_performance`와 `cyphers_match_item`은 한 경기 안에 여러 플레이어와 여러 아이템 행을 가질 수 있습니다. Power BI에서는 `match_id`만으로 1:N 관계를 만들기보다 경기·플레이어 키를 가진 브리지 테이블을 추가하거나, 분석 목적에 맞게 집계 테이블을 먼저 만드는 것을 권장합니다.
+
+던파 장비·타임라인은 `server_id`와 `character_id`를 함께 사용합니다. 서버별 캐릭터 ID 충돌을 피하려면 Power Query에서 `character_key = [server_id] & "|" & [character_id]`를 만든 뒤 동일한 키로 관계를 설정합니다.
 
 실제 Power BI에서는 날짜와 시간의 granularities가 다르므로 Power Query에서 다음 보조 열을 생성합니다.
 

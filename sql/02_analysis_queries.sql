@@ -44,7 +44,9 @@ WITH latest_character AS (
         MAX(e.item_name) AS item_name,
         COUNT(DISTINCT c.character_id) AS character_count
     FROM latest_character c
-    JOIN neople.dnf_equipment e ON e.character_id = c.character_id
+    JOIN neople.dnf_equipment e
+      ON e.server_id = c.server_id
+     AND e.character_id = c.character_id
     GROUP BY c.job_grow_name, WIDTH_BUCKET(c.fame, 0, 60000, 6), e.item_id
 )
 SELECT *,

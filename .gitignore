@@ -7,5 +7,6 @@ data/raw/*.json
 data/raw/**/*.json
 data/processed/*.csv
 data/processed/*.parquet
+web/data/dashboard.json
 *.pbix
 

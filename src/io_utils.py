@@ -8,6 +8,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from dotenv import load_dotenv
 
@@ -40,10 +41,14 @@ def safe_name(value: str) -> str:
 def write_raw(game: str, endpoint: str, key: str, params: dict[str, Any], payload: dict[str, Any]) -> Path:
     target_dir = RAW_DIR / game
     target_dir.mkdir(parents=True, exist_ok=True)
-    filename = f"{safe_name(key)}.json"
+    # Keep every collection run. The key remains stable for transformation,
+    # while the filename gets a timestamp and short nonce to avoid overwrites.
+    collected_at = now_utc()
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    filename = f"{safe_name(key)}_{stamp}_{uuid4().hex[:8]}.json"
     target = target_dir / filename
     envelope = {
-        "collected_at": now_utc(),
+        "collected_at": collected_at,
         "game": game,
         "endpoint": endpoint,
         "key": key,

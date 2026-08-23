@@ -10,7 +10,7 @@
 - 사이퍼즈 40%
   - 캐릭터별 승률·승리·킬·도움
   - 매칭 상세 정보에서 확인 가능한 아이템 사용 패턴
-- 최종 시각화: Power BI
+- 최종 시각화: Power BI + 정적 웹 대시보드
 
 ## 데이터 흐름
 
@@ -44,6 +44,7 @@ python -m src.collect --game all --dry-run
 python -m src.collect --game dnf
 python -m src.collect --game cyphers
 python -m src.transform
+python -m src.web_export
 ```
 
 실제 수집 전에는 반드시 `--dry-run`으로 대상과 호출 규모를 확인합니다.
@@ -62,6 +63,17 @@ API Key는 이 채팅이나 GitHub에 올리지 않습니다. `.env`는 `.gitign
 ## Power BI 모델
 
 Power BI에서는 `powerbi/model.md`의 스타 스키마를 기준으로 CSV를 불러옵니다. 분석용 측정값은 `powerbi/measures.dax`에 정리했습니다.
+
+## 웹 대시보드
+
+`web/index.html`은 `data/processed`에서 만든 웹용 JSON을 읽어 브라우저에서 바로 보여주는 정적 대시보드입니다. Power BI 라이선스 없이도 GitHub Pages, Netlify, Cloudflare Pages 등에 배포할 수 있습니다.
+
+```powershell
+python -m src.web_export
+python -m http.server 8000 --directory web
+```
+
+실제 데이터가 생성된 `web/data/dashboard.json`이 없으면 화면 확인을 위해 포함된 데모 데이터를 사용합니다. 생성된 대시보드 데이터는 개인 또는 이용자 분석 데이터가 될 수 있으므로 공개 저장소에 올리기 전에 공개 범위를 확인합니다. 자세한 Power BI 공개/비공개 임베드 방식은 [`web/README.md`](web/README.md)를 참고합니다.
 
 권장 페이지:
 

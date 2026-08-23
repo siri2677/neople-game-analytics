@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Neople Game Analytics web dashboard" />
+    <title>NEOPLE Game Analytics</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Neople Game Analytics 홈">
+          <span class="brand-mark">NG</span>
+          <span>
+            <strong>NEOPLE</strong>
+            <small>GAME ANALYTICS</small>
+          </span>
+        </a>
+        <div class="topbar-meta">
+          <span id="sourceBadge" class="status-badge">DEMO DATA</span>
+          <span id="generatedAt">업데이트 확인 중</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">PORTFOLIO / DATA PRODUCT</p>
+            <h1>게임 플레이를<br /><em>데이터의 언어</em>로 읽다.</h1>
+            <p class="hero-description">
+              던전앤파이터와 사이퍼즈 오픈 API를 바탕으로 성장, 시세, 경기 성과를 한 화면에서 탐색합니다.
+            </p>
+          </div>
+          <aside class="hero-note">
+            <span class="note-kicker">DATA STORY</span>
+            <strong>표본의 범위를 먼저 보고,<br />숫자의 의미를 읽습니다.</strong>
+            <span class="note-line"></span>
+            <p>API 수집 시점과 표본 범위를 함께 표시해 과도한 해석을 막습니다.</p>
+          </aside>
+        </section>
+
+        <nav class="view-switcher" aria-label="분석 범위" role="tablist">
+          <button class="view-button is-active" data-view="all" role="tab" aria-selected="true">Overview</button>
+          <button class="view-button" data-view="dnf" role="tab" aria-selected="false">던파</button>
+          <button class="view-button" data-view="cyphers" role="tab" aria-selected="false">사이퍼즈</button>
+        </nav>
+
+        <section id="overview" class="dashboard-section" aria-labelledby="overview-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">EXECUTIVE SUMMARY</p>
+              <h2 id="overview-title">한눈에 보는 분석 상태</h2>
+            </div>
+            <p class="section-caption">Power BI 모델과 같은 원천 CSV를 사용하는 웹 뷰입니다.</p>
+          </div>
+
+          <div class="metric-grid">
+            <article class="metric-card metric-card-dark">
+              <span class="metric-label">DNF CHARACTERS</span>
+              <strong id="dnfCharacters" class="metric-value">—</strong>
+              <span class="metric-footnote">고유 캐릭터</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">MEDIAN FAME</span>
+              <strong id="dnfMedianFame" class="metric-value">—</strong>
+              <span class="metric-footnote">던파 명성 중앙값</span>
+            </article>
+            <article class="metric-card metric-card-accent">
+              <span class="metric-label">CYPHERS MATCHES</span>
+              <strong id="cyphersMatches" class="metric-value">—</strong>
+              <span class="metric-footnote">수집 경기 수</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">WIN RATE</span>
+              <strong id="cyphersWinRate" class="metric-value">—</strong>
+              <span class="metric-footnote">사이퍼즈 전체 승률</span>
+            </article>
+          </div>
+
+          <div class="content-grid content-grid-overview">
+            <article class="panel panel-large" data-panel="dnf">
+              <div class="panel-heading">
+                <div>
+                  <span class="panel-index">01</span>
+                  <h3>직업별 명성 분포</h3>
+                </div>
+                <span class="panel-unit">MEDIAN FAME</span>
+              </div>
+              <div id="jobChart" class="bar-chart" aria-label="직업별 명성 중앙값"></div>
+            </article>
+            <article class="panel" data-panel="dnf">
+              <div class="panel-heading">
+                <div>
+                  <span class="panel-index">02</span>
+                  <h3>경매장 관측</h3>
+                </div>
+                <span class="panel-unit">MEDIAN PRICE</span>
+              </div>
+              <div id="auctionList" class="rank-list"></div>
+            </article>
+            <article class="panel panel-large" data-panel="cyphers">
+              <div class="panel-heading">
+                <div>
+                  <span class="panel-index">03</span>
+                  <h3>캐릭터별 승률</h3>
+                </div>
+                <span class="panel-unit">WIN RATE</span>
+              </div>
+              <div id="characterChart" class="bar-chart" aria-label="캐릭터별 승률"></div>
+            </article>
+            <article class="panel panel-quality" data-panel="all">
+              <div class="panel-heading">
+                <div>
+                  <span class="panel-index">04</span>
+                  <h3>데이터 품질 메모</h3>
+                </div>
+                <span class="panel-unit">CONTEXT</span>
+              </div>
+              <ul class="quality-list">
+                <li><span class="quality-dot"></span><span>원천 데이터는 Neople API 응답을 보관합니다.</span></li>
+                <li><span class="quality-dot"></span><span>표본은 수집 시점과 호출 제한의 영향을 받습니다.</span></li>
+                <li><span class="quality-dot"></span><span>승률·가격은 인과관계가 아닌 기술통계입니다.</span></li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="dnf" class="detail-section" data-detail="dnf" aria-labelledby="dnf-title">
+          <div class="detail-heading">
+            <div><p class="eyebrow">DUNGEON &amp; FIGHTER</p><h2 id="dnf-title">던파 성장과 시세</h2></div>
+            <p>직업별 성장 분포와 경매장 관측 가격을 확인합니다.</p>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-stat"><span>직업 수</span><strong id="dnfJobCount">—</strong></div>
+            <div class="detail-stat"><span>경매장 아이템</span><strong id="dnfAuctionCount">—</strong></div>
+            <div class="detail-stat"><span>데이터 원칙</span><strong>표본 우선</strong></div>
+          </div>
+        </section>
+
+        <section id="cyphers" class="detail-section" data-detail="cyphers" aria-labelledby="cyphers-title">
+          <div class="detail-heading">
+            <div><p class="eyebrow">CY.PHERS</p><h2 id="cyphers-title">사이퍼즈 경기 성과</h2></div>
+            <p>캐릭터 승률과 경기별 성과 지표를 확인합니다.</p>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-stat"><span>분석 캐릭터</span><strong id="cyphersCharacterCount">—</strong></div>
+            <div class="detail-stat"><span>아이템 종류</span><strong id="cyphersItemCount">—</strong></div>
+            <div class="detail-stat"><span>해석 범위</span><strong>기술통계</strong></div>
+          </div>
+        </section>
+
+        <div id="loadError" class="load-error" hidden>
+          데이터를 불러오지 못했습니다. `python -m src.web_export`를 실행해 웹용 데이터를 생성한 뒤 다시 열어주세요.
+        </div>
+      </main>
+
+      <footer>
+        <span>NEOPLE GAME ANALYTICS</span>
+        <span>Built from the same processed data that feeds Power BI.</span>
+      </footer>
+    </div>
+    <script src="app.js" defer></script>
+  </body>
+</html>

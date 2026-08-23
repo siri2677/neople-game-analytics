@@ -142,7 +142,8 @@ def transform_dnf() -> None:
                 equipment.append({
                     "game_code": "DNF",
                     "collected_at": collected_at,
-                    "character_id": character_id,
+                    "server_id": params.get("serverId"),
+                    "character_id": params.get("characterId") or character_id,
                     "item_id": first(row, "itemId"),
                     "item_name": first(row, "itemName"),
                     "slot_id": first(row, "slotId"),
@@ -169,7 +170,8 @@ def transform_dnf() -> None:
                 timeline.append({
                     "game_code": "DNF",
                     "collected_at": collected_at,
-                    "character_id": character_id,
+                    "server_id": params.get("serverId"),
+                    "character_id": params.get("characterId") or character_id,
                     "event_date": first(row, "date", "eventDate"),
                     "event_code": first(row, "code"),
                     "event_name": first(row, "name"),
@@ -209,7 +211,7 @@ def transform_cyphers() -> None:
                     "game_code": "CYPHERS",
                     "collected_at": collected_at,
                     "player_id": envelope.get("key", "").replace("matches_", ""),
-                    "match_id": first(row, "matchId"),
+                    "match_id": first(row, "matchId", "match_id"),
                     "match_date": first(row, "date", "matchDate"),
                     "game_type": first(row, "gameTypeId", default=params.get("gameTypeId")),
                 })
@@ -242,7 +244,7 @@ def write_csv(rows: list[dict[str, Any]], filename: str) -> None:
             "level", "job_id", "job_grow_id", "job_name", "job_grow_name", "fame", "source",
         ],
         "dnf_equipment.csv": [
-            "game_code", "collected_at", "character_id", "item_id", "item_name", "slot_id",
+            "game_code", "collected_at", "server_id", "character_id", "item_id", "item_name", "slot_id",
             "slot_name", "rarity", "reinforce", "refine",
         ],
         "dnf_auction_sold.csv": [
@@ -250,7 +252,7 @@ def write_csv(rows: list[dict[str, Any]], filename: str) -> None:
             "average_price", "count",
         ],
         "dnf_timeline.csv": [
-            "game_code", "collected_at", "character_id", "event_date", "event_code",
+            "game_code", "collected_at", "server_id", "character_id", "event_date", "event_code",
             "event_name", "event_data",
         ],
         "cyphers_player.csv": ["game_code", "collected_at", "player_id", "nickname"],

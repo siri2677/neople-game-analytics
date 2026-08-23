@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-08-23T00:00:00Z",
+  "source": "demo",
+  "summary": {
+    "dnf_characters": 148,
+    "dnf_median_fame": 54320,
+    "dnf_auction_items": 36,
+    "cyphers_matches": 214,
+    "cyphers_win_rate": 51.4
+  },
+  "dnf": {
+    "jobs": [
+      {"job_name": "검귀", "characters": 24, "average_fame": 55180, "median_fame": 56240},
+      {"job_name": "아수라", "characters": 31, "average_fame": 54760, "median_fame": 55410},
+      {"job_name": "여크루세이더", "characters": 19, "average_fame": 53520, "median_fame": 54200},
+      {"job_name": "블레이드", "characters": 28, "average_fame": 52980, "median_fame": 53480},
+      {"job_name": "소울브링어", "characters": 16, "average_fame": 51890, "median_fame": 52230}
+    ],
+    "auctions": [
+      {"item_name": "짙은 심연의 편린", "observations": 42, "median_price": 1280000, "average_price": 1395000},
+      {"item_name": "왜곡된 차원의 큐브", "observations": 36, "median_price": 840000, "average_price": 910000},
+      {"item_name": "골든 베릴", "observations": 58, "median_price": 12500, "average_price": 13100},
+      {"item_name": "불가침의 영역 장비", "observations": 17, "median_price": 420000, "average_price": 510000}
+    ]
+  },
+  "cyphers": {
+    "characters": [
+      {"character_name": "티엔", "matches": 34, "win_rate": 61.8, "average_kills": 4.8, "average_assists": 7.2},
+      {"character_name": "헤나투", "matches": 27, "win_rate": 55.6, "average_kills": 3.1, "average_assists": 9.3},
+      {"character_name": "테이", "matches": 48, "win_rate": 52.1, "average_kills": 5.6, "average_assists": 4.4},
+      {"character_name": "린", "matches": 39, "win_rate": 48.7, "average_kills": 2.8, "average_assists": 10.1},
+      {"character_name": "휴톤", "matches": 22, "win_rate": 45.5, "average_kills": 3.7, "average_assists": 6.8}
+    ],
+    "items": [
+      {"item_name": "공격킷", "matches": 82},
+      {"item_name": "방어킷", "matches": 77},
+      {"item_name": "가속킷", "matches": 64},
+      {"item_name": "회복킷", "matches": 53}
+    ]
+  }
+}
