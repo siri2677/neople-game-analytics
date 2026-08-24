@@ -1,4 +1,6 @@
 .env
+secret.local.yaml
+*.secret.yaml
 .venv/
 __pycache__/
 .pytest_cache/
@@ -8,4 +10,3 @@ data/raw/**/*.json
 data/processed/*.csv
 data/processed/*.parquet
 *.pbix
-

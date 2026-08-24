@@ -89,6 +89,90 @@ API 수집 -> transform -> PostgreSQL 적재 -> Power BI Refresh
 
 Power BI `.pbix` 파일은 Power BI Desktop에서 위 View를 최초 연결한 뒤 저장합니다.
 
+## Kubernetes Secret·ConfigMap 설정
+
+클러스터에서 실행할 때 `.env` 파일을 그대로 GitOps 저장소에 넣지 않습니다. 민감한 값은 Kubernetes `Secret`, 일반 실행 설정은 `ConfigMap`으로 분리합니다.
+
+### Secret에 넣을 Key
+
+| Key | 필수 여부 | 설명 |
+| --- | --- | --- |
+| `NEOPLE_API_KEY` | 필수 | 네오플 Developers에서 발급받은 API Key |
+| `POSTGRES_PASSWORD` | 필수 | PostgreSQL 접속 비밀번호. PostgreSQL Pod 또는 외부 DB의 비밀번호와 동일해야 함 |
+
+현재 프로젝트는 위 환경변수 이름을 그대로 읽습니다. 실제 API Key와 비밀번호는 이 채팅이나 GitHub에 입력하지 않습니다.
+
+### Secret 생성 예시
+
+아래 파일은 예시이며 `secret.local.yaml` 같은 로컬 파일로만 사용합니다. GitOps 저장소에는 평문 Secret을 커밋하지 않습니다.
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: neople-game-analytics-secret
+  namespace: neople
+type: Opaque
+stringData:
+  NEOPLE_API_KEY: "replace_with_your_neople_api_key"
+  POSTGRES_PASSWORD: "replace_with_a_strong_postgres_password"
+```
+
+```powershell
+kubectl create namespace neople
+kubectl apply -f secret.local.yaml
+```
+
+운영 GitOps에서는 `SealedSecret`, `ExternalSecret` 또는 클라우드 Secret Manager를 사용합니다. 평문 값이 들어간 `secret.local.yaml`은 `.gitignore`에 등록하고 저장소에 커밋하지 않습니다.
+
+### ConfigMap에 넣을 Key
+
+Secret이 아닌 설정은 ConfigMap 또는 Helm values로 관리합니다.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neople-game-analytics-config
+  namespace: neople
+data:
+  POSTGRES_HOST: "neople-postgres.neople.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "neople"
+  POSTGRES_USER: "neople"
+  DNF_SERVERS: "all"
+  DNF_FAME_BANDS: "50000:52000,52000:54000,54000:56000"
+  DNF_SAMPLE_LIMIT: "30"
+  DNF_AUCTION_ITEM_LIMIT: "30"
+  CYPHERS_CHARACTER_RANKING_TYPES: "winRate,winCount,killCount,assistCount,exp"
+  CYPHERS_RANKING_LIMIT: "1000"
+  CYPHERS_TOP_PLAYER_LIMIT: "50"
+  CYPHERS_GAME_TYPE: "rating"
+  CYPHERS_MATCH_LIMIT: "50"
+  CYPHERS_MATCH_DETAIL_LIMIT: "300"
+```
+
+`CYPHERS_START_DATE`와 `CYPHERS_END_DATE`를 생략하면 수집 실행일 기준 최근 30일이 사용됩니다. 기간을 고정해 재현하려면 ConfigMap에 다음처럼 추가합니다.
+
+```yaml
+  CYPHERS_START_DATE: "2026-08-01 00:00"
+  CYPHERS_END_DATE: "2026-08-24 00:00"
+```
+
+### Pod 또는 CronJob에서 주입
+
+수집기·변환·적재 컨테이너에는 다음처럼 두 리소스를 모두 주입합니다.
+
+```yaml
+envFrom:
+  - secretRef:
+      name: neople-game-analytics-secret
+  - configMapRef:
+      name: neople-game-analytics-config
+```
+
+클러스터 내부 PostgreSQL의 `POSTGRES_HOST`는 `localhost`가 아니라 PostgreSQL Service DNS를 사용합니다. 반면 Power BI Desktop에서 외부로 접속할 때는 별도의 LoadBalancer, VPN, Gateway 또는 외부 관리형 DB 주소가 필요합니다.
+
 ## 분석가형 Power BI 구성
 
 Power BI에서는 `powerbi/model.md`의 View 연결 기준을 사용합니다. 분석용 측정값은 `powerbi/measures.dax`에 정리했습니다.
