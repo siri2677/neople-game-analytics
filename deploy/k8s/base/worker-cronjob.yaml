@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: neople-analytics-worker
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: worker
+              image: neople-game-analytics-worker:latest
+              imagePullPolicy: Always
+              envFrom:
+                - configMapRef:
+                    name: neople-game-analytics-config
+                - secretRef:
+                    name: neople-game-analytics-secret

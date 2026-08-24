@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neople-analytics-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: neople-analytics-api
+  template:
+    metadata:
+      labels:
+        app: neople-analytics-api
+    spec:
+      containers:
+        - name: api
+          image: neople-game-analytics-api:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: neople-powerbi-config
+            - secretRef:
+                name: neople-powerbi-secret
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http

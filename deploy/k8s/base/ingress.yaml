@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: neople-analytics
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - analytics.example.com
+      secretName: neople-analytics-tls
+  rules:
+    - host: analytics.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: neople-analytics-web
+                port:
+                  name: http

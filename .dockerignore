@@ -1,0 +1,11 @@
+.git
+.gitlab-ci.yml
+.venv
+__pycache__
+.pytest_cache
+.env
+secret.local.yaml
+*.secret.yaml
+data/raw
+data/processed
+*.pbix

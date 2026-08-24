@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neople-powerbi-config
+data:
+  POWERBI_WORKSPACE_ID: replace_with_powerbi_workspace_id
+  POWERBI_REPORT_ID: replace_with_powerbi_report_id
+  POWERBI_API_BASE_URL: https://api.powerbi.com/v1.0/myorg
+  POWERBI_SCOPE: https://analysis.windows.net/powerbi/api/.default
+  POWERBI_TOKEN_LIFETIME_MINUTES: "30"
+  CORS_ALLOW_ORIGINS: https://analytics.example.com

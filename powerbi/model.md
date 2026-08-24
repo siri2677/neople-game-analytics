@@ -23,6 +23,17 @@ vw_cyphers_item_performance
 4. Navigator에서 `neople` 스키마의 View를 선택합니다.
 5. Import 모드로 불러온 뒤 `powerbi/measures.dax`의 측정값을 추가합니다.
 
+## Power BI Service와 웹 임베드
+
+1. 이 문서의 View를 사용해 Power BI Report를 제작합니다.
+2. Power BI Service Workspace에 Report를 게시합니다.
+3. Microsoft Entra 앱을 만들고 Power BI API 접근을 허용합니다.
+4. Entra 앱을 해당 Workspace의 Member 이상으로 추가합니다.
+5. `apps/api/app/main.py`가 Report 정보와 View용 Embed token을 발급합니다.
+6. `apps/web/app.js`가 `powerbi-client`로 Report를 표시합니다.
+
+Power BI Report와 Workspace가 아직 생성되지 않은 상태에서는 API가 정상적인 Embed token을 발급할 수 없습니다. `POWERBI_TENANT_ID`, `POWERBI_CLIENT_ID`, `POWERBI_CLIENT_SECRET`, `POWERBI_WORKSPACE_ID`, `POWERBI_REPORT_ID`를 Kubernetes Secret·ConfigMap으로 주입한 뒤 사용합니다.
+
 ## 분석 질문별 페이지 설계
 
 ### 1. 분석 개요

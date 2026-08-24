@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neople-game-analytics-config
+data:
+  POSTGRES_HOST: replace_with_managed_postgres_host
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: replace_with_managed_postgres_database
+  POSTGRES_USER: replace_with_managed_postgres_user
+  POSTGRES_SSLMODE: require
+  PIPELINE_LOAD_MODE: replace
+  DNF_SERVERS: all
+  DNF_FAME_BANDS: 50000:52000,52000:54000,54000:56000
+  DNF_SAMPLE_LIMIT: "30"
+  DNF_AUCTION_ITEM_LIMIT: "30"
+  CYPHERS_CHARACTER_RANKING_TYPES: winRate,winCount,killCount,assistCount,exp
+  CYPHERS_RANKING_LIMIT: "1000"
+  CYPHERS_TOP_PLAYER_LIMIT: "50"
+  CYPHERS_GAME_TYPE: rating
+  CYPHERS_MATCH_LIMIT: "50"
+  CYPHERS_MATCH_DETAIL_LIMIT: "300"

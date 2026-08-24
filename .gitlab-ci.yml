@@ -1,0 +1,62 @@
+stages:
+  - test
+  - image
+  - gitops
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  WORKER_IMAGE: "$CI_REGISTRY_IMAGE/worker"
+  API_IMAGE: "$CI_REGISTRY_IMAGE/api"
+  WEB_IMAGE: "$CI_REGISTRY_IMAGE/web"
+
+cache:
+  paths:
+    - .cache/pip
+
+test:
+  stage: test
+  image: python:3.12-slim
+  script:
+    - pip install -r requirements.txt
+    - python -m pytest -q
+    - python -m compileall -q src apps
+
+build_and_push_images:
+  stage: image
+  image: docker:27.5.1-cli
+  services:
+    - name: docker:27.5.1-dind
+      command: ["--tls=false"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  needs: ["test"]
+  before_script:
+    - until docker info; do sleep 2; done
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
+  script:
+    - docker build -f Dockerfile.worker -t "$WORKER_IMAGE:$CI_COMMIT_SHA" .
+    - docker build -f Dockerfile.api -t "$API_IMAGE:$CI_COMMIT_SHA" .
+    - docker build -f Dockerfile.web -t "$WEB_IMAGE:$CI_COMMIT_SHA" .
+    - docker push "$WORKER_IMAGE:$CI_COMMIT_SHA"
+    - docker push "$API_IMAGE:$CI_COMMIT_SHA"
+    - docker push "$WEB_IMAGE:$CI_COMMIT_SHA"
+
+update_gitops:
+  stage: gitops
+  image: alpine:3.20
+  needs: ["build_and_push_images"]
+  rules:
+    - if: '$GITOPS_REPO_HOST_PATH && $GITOPS_ACCESS_TOKEN'
+    - when: never
+  before_script:
+    - apk add --no-cache git
+  script:
+    - git -c http.extraheader="Authorization: Bearer $GITOPS_ACCESS_TOKEN" clone "https://$GITOPS_REPO_HOST_PATH" gitops
+    - cd "gitops/${GITOPS_APP_PATH:-apps/neople-game-analytics/overlays/prod}"
+    - sed -i "s#newTag:.*#newTag: $CI_COMMIT_SHA#g" kustomization.yaml
+    - git config user.email "gitlab-ci@neople-game-analytics.local"
+    - git config user.name "neople-game-analytics-ci"
+    - git add kustomization.yaml
+    - git commit -m "chore: update neople analytics images to $CI_COMMIT_SHA" || true
+    - git -c http.extraheader="Authorization: Bearer $GITOPS_ACCESS_TOKEN" push origin HEAD

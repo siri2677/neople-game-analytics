@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neople-analytics-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: neople-analytics-web
+  template:
+    metadata:
+      labels:
+        app: neople-analytics-web
+    spec:
+      containers:
+        - name: web
+          image: neople-game-analytics-web:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http

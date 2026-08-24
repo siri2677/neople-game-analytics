@@ -175,6 +175,66 @@ envFrom:
 
 이 프로젝트는 외부 관리형 PostgreSQL을 기본으로 사용합니다. Kubernetes에서는 `POSTGRES_HOST`에 관리형 DB의 호스트를 넣고, `POSTGRES_PASSWORD`는 Secret으로 주입합니다. Power BI Desktop도 같은 외부 DB 주소를 사용하며, DB 방화벽에 Power BI 실행 환경의 접속을 허용하거나 VPN·Gateway를 구성해야 합니다. 로컬 PostgreSQL을 사용할 때만 `POSTGRES_HOST=localhost`, `POSTGRES_SSLMODE=disable`을 사용합니다.
 
+### Power BI Embed API Secret
+
+`neople-powerbi-secret`에는 다음 값을 넣습니다.
+
+| Key | 설명 |
+| --- | --- |
+| `POWERBI_TENANT_ID` | Microsoft Entra 테넌트 ID |
+| `POWERBI_CLIENT_ID` | Embed용 Entra 애플리케이션 ID |
+| `POWERBI_CLIENT_SECRET` | Embed용 Entra 애플리케이션 Secret |
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: neople-powerbi-secret
+  namespace: neople
+type: Opaque
+stringData:
+  POWERBI_TENANT_ID: "replace_with_microsoft_entra_tenant_id"
+  POWERBI_CLIENT_ID: "replace_with_microsoft_entra_application_id"
+  POWERBI_CLIENT_SECRET: "replace_with_microsoft_entra_client_secret"
+```
+
+`POWERBI_WORKSPACE_ID`와 `POWERBI_REPORT_ID`는 `neople-powerbi-config` ConfigMap에 넣습니다. Power BI Service에 Report를 먼저 게시하고, Embed용 Entra 앱을 해당 Workspace의 Member 이상으로 추가해야 `/api/powerbi/embed-config`가 동작합니다.
+
+### 자동화된 Web·API·Worker 구조
+
+```text
+GitLab CI
+  -> 테스트
+  -> Worker/API/Web Docker 이미지 빌드·Push
+  -> GitOps 저장소의 Kustomize image tag 변경
+  -> Argo CD 또는 Flux 동기화
+
+Kubernetes
+  -> analytics-worker CronJob: API 수집 -> transform -> PostgreSQL 적재
+  -> analytics-api Deployment: Power BI Embed token 발급
+  -> analytics-web Deployment: Power BI 리포트 표시
+
+외부 관리형 PostgreSQL -> Power BI Service -> analytics-web
+```
+
+관련 파일:
+
+- `Dockerfile.worker`: 수집·변환·적재 이미지
+- `Dockerfile.api`: FastAPI Embed token API 이미지
+- `Dockerfile.web`: Power BI 리포트 웹 표시 이미지
+- `.gitlab-ci.yml`: 테스트·이미지 Push·선택적 GitOps tag 업데이트
+- `deploy/k8s/`: Kustomize 기반 Kubernetes 배포 템플릿
+
+GitLab CI에서 GitOps 자동 업데이트를 사용하려면 다음 CI/CD 변수를 설정합니다.
+
+```text
+GITOPS_REPO_HOST_PATH=gitlab.com/your-group/your-gitops-repository.git
+GITOPS_ACCESS_TOKEN=마스킹된 GitLab Token
+GITOPS_APP_PATH=apps/neople-game-analytics/overlays/prod
+```
+
+`GITOPS_ACCESS_TOKEN`은 Repository write 권한이 있는 Masked·Protected 변수로 등록합니다. 실제 Secret 값은 GitOps 저장소에 넣지 않고 SealedSecret 또는 ExternalSecret으로 관리합니다.
+
 ## 분석가형 Power BI 구성
 
 Power BI에서는 `powerbi/model.md`의 View 연결 기준을 사용합니다. 분석용 측정값은 `powerbi/measures.dax`에 정리했습니다.

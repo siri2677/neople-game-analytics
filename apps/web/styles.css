@@ -1,0 +1,23 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", "Malgun Gothic", sans-serif;
+  color: #17202b;
+  background: #f3f5f8;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+.shell { max-width: 1440px; min-height: 100vh; margin: 0 auto; padding: 24px; }
+.header { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+.eyebrow { margin: 0 0 4px; color: #3b82f6; font-size: 12px; letter-spacing: .08em; }
+h1 { margin: 0; font-size: 26px; font-weight: 500; }
+.status { margin: 0; color: #687586; font-size: 13px; }
+.status.error, .error-panel { color: #b4232e; }
+#report-container { min-height: 760px; background: #fff; border: 1px solid #dce2e8; }
+.error-panel { padding: 24px; }
+@media (max-width: 640px) {
+  .shell { padding: 14px; }
+  .header { display: block; }
+  .status { margin-top: 10px; }
+  #report-container { min-height: 620px; }
+}
