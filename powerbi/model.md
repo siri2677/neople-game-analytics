@@ -19,7 +19,7 @@ vw_cyphers_item_performance
 
 1. PostgreSQL이 실행 중인지 확인합니다.
 2. Power BI Desktop에서 `Get data > PostgreSQL database`를 선택합니다.
-3. Server는 `localhost`, Database는 `neople`을 입력합니다.
+3. `.env`의 `POSTGRES_HOST`, `POSTGRES_DB`로 지정한 서버와 데이터베이스에 접속합니다.
 4. Navigator에서 `neople` 스키마의 View를 선택합니다.
 5. Import 모드로 불러온 뒤 `powerbi/measures.dax`의 측정값을 추가합니다.
 

@@ -42,13 +42,14 @@ pip install -r requirements.txt
 
 ```powershell
 Copy-Item .env.example .env
-# .env에 API Key 입력
+# .env에 API Key와 외부 PostgreSQL 접속 정보 입력
 
-docker compose up -d db
 python -m src.collect --game all
 python -m src.transform
 python -m src.load_postgres --mode replace
 ```
+
+기본 실행은 외부 관리형 PostgreSQL을 사용합니다. `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_SSLMODE`를 DB 서비스가 발급한 값으로 입력한 뒤 실행합니다. `docker compose up -d db`는 로컬 테스트가 필요할 때만 선택적으로 사용합니다.
 
 처음 실행하거나 API 호출 규모를 확인하려면 실제 수집 전에 다음 명령을 사용할 수 있습니다.
 
@@ -69,7 +70,7 @@ API Key는 이 채팅이나 GitHub에 올리지 않습니다. `.env`는 `.gitign
 
 ## PostgreSQL과 Power BI
 
-`docker compose up -d db`로 로컬 PostgreSQL을 실행한 뒤, `src.load_postgres`가 `data/processed`의 CSV를 `neople` 스키마에 적재합니다. 적재가 완료되면 `sql/03_views.sql`의 분석용 View가 생성됩니다.
+`src.load_postgres`가 외부 관리형 PostgreSQL의 `neople` 스키마에 `data/processed`의 CSV를 적재합니다. 적재가 완료되면 `sql/03_views.sql`의 분석용 View가 생성됩니다. 외부 DB는 일반적으로 SSL 접속을 요구하므로 `.env`의 `POSTGRES_SSLMODE=require`를 사용합니다.
 
 Power BI Desktop에서 `Get data > PostgreSQL database`를 선택해 다음 View를 불러옵니다.
 
@@ -98,7 +99,7 @@ Power BI `.pbix` 파일은 Power BI Desktop에서 위 View를 최초 연결한 �
 | Key | 필수 여부 | 설명 |
 | --- | --- | --- |
 | `NEOPLE_API_KEY` | 필수 | 네오플 Developers에서 발급받은 API Key |
-| `POSTGRES_PASSWORD` | 필수 | PostgreSQL 접속 비밀번호. PostgreSQL Pod 또는 외부 DB의 비밀번호와 동일해야 함 |
+| `POSTGRES_PASSWORD` | 필수 | 외부 관리형 PostgreSQL 접속 비밀번호 |
 
 현재 프로젝트는 위 환경변수 이름을 그대로 읽습니다. 실제 API Key와 비밀번호는 이 채팅이나 GitHub에 입력하지 않습니다.
 
@@ -136,10 +137,11 @@ metadata:
   name: neople-game-analytics-config
   namespace: neople
 data:
-  POSTGRES_HOST: "neople-postgres.neople.svc.cluster.local"
+  POSTGRES_HOST: "replace_with_managed_postgres_host"
   POSTGRES_PORT: "5432"
-  POSTGRES_DB: "neople"
-  POSTGRES_USER: "neople"
+  POSTGRES_DB: "replace_with_managed_postgres_database"
+  POSTGRES_USER: "replace_with_managed_postgres_user"
+  POSTGRES_SSLMODE: "require"
   DNF_SERVERS: "all"
   DNF_FAME_BANDS: "50000:52000,52000:54000,54000:56000"
   DNF_SAMPLE_LIMIT: "30"
@@ -171,7 +173,7 @@ envFrom:
       name: neople-game-analytics-config
 ```
 
-클러스터 내부 PostgreSQL의 `POSTGRES_HOST`는 `localhost`가 아니라 PostgreSQL Service DNS를 사용합니다. 반면 Power BI Desktop에서 외부로 접속할 때는 별도의 LoadBalancer, VPN, Gateway 또는 외부 관리형 DB 주소가 필요합니다.
+이 프로젝트는 외부 관리형 PostgreSQL을 기본으로 사용합니다. Kubernetes에서는 `POSTGRES_HOST`에 관리형 DB의 호스트를 넣고, `POSTGRES_PASSWORD`는 Secret으로 주입합니다. Power BI Desktop도 같은 외부 DB 주소를 사용하며, DB 방화벽에 Power BI 실행 환경의 접속을 허용하거나 VPN·Gateway를 구성해야 합니다. 로컬 PostgreSQL을 사용할 때만 `POSTGRES_HOST=localhost`, `POSTGRES_SSLMODE=disable`을 사용합니다.
 
 ## 분석가형 Power BI 구성
 

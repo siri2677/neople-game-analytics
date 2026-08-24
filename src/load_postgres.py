@@ -90,6 +90,7 @@ def connection_kwargs() -> dict[str, str | int]:
         "dbname": os.getenv("POSTGRES_DB", "neople"),
         "user": os.getenv("POSTGRES_USER", "neople"),
         "password": os.getenv("POSTGRES_PASSWORD", "neople_local_only"),
+        "sslmode": os.getenv("POSTGRES_SSLMODE", "prefer"),
     }
 
 
