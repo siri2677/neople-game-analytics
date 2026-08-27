@@ -99,6 +99,8 @@ python -m http.server 8000 --directory web
 
 API Key는 이 채팅이나 GitHub에 올리지 않습니다. `.env`는 `.gitignore`에 등록되어 있으며, 공유가 필요한 경우 `.env.example`만 사용합니다.
 
+현재 방식에서 필요한 시크릿과 사용하지 않는 이전 설정은 [`docs/current/secret-config.md`](docs/current/secret-config.md)에 정리했습니다.
+
 네오플 API의 제공 범위·호출 제한·약관은 변경될 수 있으므로 공개 대시보드나 원천 데이터 배포 전 공식 문서를 확인합니다.
 
 - 던파 API: https://developers.neople.co.kr/contents/apiDocs
