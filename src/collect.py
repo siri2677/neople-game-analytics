@@ -147,14 +147,23 @@ def main() -> None:
     parser.add_argument("--game", choices=["dnf", "cyphers", "all"], default="all")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
-    if args.dry_run:
-        client = None
-    else:
-        client = NeopleClient(env("NEOPLE_API_KEY"))
+
+    # DNF and Cyphers use separate game-scoped API keys. Create only the
+    # client needed for the selected game so a single-game run does not
+    # require the other game's key.
+    dnf_client = None
+    cyphers_client = None
+    if not args.dry_run:
+        if args.game in {"dnf", "all"}:
+            dnf_client = NeopleClient(env("DNF_API_KEY"), api_key_name="DNF_API_KEY")
+        if args.game in {"cyphers", "all"}:
+            cyphers_client = NeopleClient(
+                env("CYPHERS_API_KEY"), api_key_name="CYPHERS_API_KEY"
+            )
     if args.game in {"dnf", "all"}:
-        collect_dnf(client, args.dry_run)  # type: ignore[arg-type]
+        collect_dnf(dnf_client, args.dry_run)  # type: ignore[arg-type]
     if args.game in {"cyphers", "all"}:
-        collect_cyphers(client, args.dry_run)  # type: ignore[arg-type]
+        collect_cyphers(cyphers_client, args.dry_run)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

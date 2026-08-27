@@ -13,9 +13,15 @@ class NeopleApiError(RuntimeError):
 
 
 class NeopleClient:
-    def __init__(self, api_key: str, request_interval: float = 0.05) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        request_interval: float = 0.05,
+        *,
+        api_key_name: str = "API_KEY",
+    ) -> None:
         if not api_key:
-            raise ValueError("NEOPLE_API_KEY is empty")
+            raise ValueError(f"{api_key_name} is empty")
         self.api_key = api_key
         self.request_interval = request_interval
         self.session = requests.Session()

@@ -37,10 +37,11 @@ pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-`.env`에 API Key와 수집 대상을 설정합니다. API Key는 실제 값을 입력하되 이 채팅이나 GitHub에 올리지 않습니다.
+`.env`에 게임별 API Key와 수집 대상을 설정합니다. 던파와 사이퍼즈 API Key는 서로 다른 게임용으로 발급되므로 각각 입력해야 합니다. 실제 Key는 이 채팅이나 GitHub에 올리지 않습니다.
 
 ```env
-NEOPLE_API_KEY=발급받은_네오플_API_KEY
+DNF_API_KEY=발급받은_던파_API_KEY
+CYPHERS_API_KEY=발급받은_사이퍼즈_API_KEY
 
 DNF_SERVERS=all
 DNF_FAME_BANDS=50000:52000,52000:54000,54000:56000
@@ -99,7 +100,7 @@ python -m http.server 8000 --directory web
 
 API Key는 이 채팅이나 GitHub에 올리지 않습니다. `.env`는 `.gitignore`에 등록되어 있으며, 공유가 필요한 경우 `.env.example`만 사용합니다.
 
-현재 방식에서 필요한 시크릿과 사용하지 않는 이전 설정은 [`docs/current/secret-config.md`](docs/current/secret-config.md)에 정리했습니다.
+현재 방식에서 필요한 게임별 시크릿과 사용하지 않는 이전 설정은 [`docs/current/secret-config.md`](docs/current/secret-config.md)에 정리했습니다.
 
 네오플 API의 제공 범위·호출 제한·약관은 변경될 수 있으므로 공개 대시보드나 원천 데이터 배포 전 공식 문서를 확인합니다.
 
