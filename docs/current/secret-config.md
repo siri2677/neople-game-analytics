@@ -37,6 +37,8 @@ Neople 공통 응답 코드에도 다른 게임용 Key를 사용하면 `API005(�
 
 실제 사용 가능한 전체 예시는 [`.env.example`](../../.env.example)에 있다.
 
+게임별 Key로 분리한 배경과 기존 `.env` 변경 방법은 [`api-key-separation.md`](api-key-separation.md)에 별도로 정리했다.
+
 ## 현재 설정 예시
 
 ```env
