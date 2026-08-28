@@ -145,7 +145,7 @@ AI가 생성한 문장을 그대로 결론으로 사용하지 않으며, 데이�
 
 ### 단계 1 — 기준선 확정
 
-- `codex/neople-web-dashboard`를 무료형 포트폴리오 기준 브랜치로 사용
+- `feature/neople-web-dashboard`를 무료형 포트폴리오 기준 브랜치로 사용
 - `feat/postgres-powerbi-pipeline`의 운영형 임베딩 경로는 참고·보관만 함
 - 분석 질문, 표본 범위, 공개 데이터 정책 확정
 
