@@ -5,8 +5,21 @@
     "dnf_characters": 148,
     "dnf_median_fame": 54320,
     "dnf_auction_items": 36,
+    "dnf_equipment_items": 48,
+    "dnf_timeline_events": 6,
     "cyphers_matches": 214,
-    "cyphers_win_rate": 51.4
+    "cyphers_win_rate": 51.4,
+    "cyphers_characters": 5,
+    "cyphers_items": 4
+  },
+  "quality": {
+    "raw_identifiers_excluded": true,
+    "minimum_cyphers_item_matches": 10,
+    "notes": [
+      "표본은 수집 시점과 API 호출 범위의 영향을 받습니다.",
+      "승률·가격은 기술통계이며 인과관계를 의미하지 않습니다.",
+      "최소 표본 수를 충족하지 못한 조합은 후보 해석에서 제외합니다."
+    ]
   },
   "dnf": {
     "jobs": [
@@ -14,13 +27,30 @@
       {"job_name": "아수라", "characters": 31, "average_fame": 54760, "median_fame": 55410},
       {"job_name": "여크루세이더", "characters": 19, "average_fame": 53520, "median_fame": 54200},
       {"job_name": "블레이드", "characters": 28, "average_fame": 52980, "median_fame": 53480},
-      {"job_name": "소울브링어", "characters": 16, "average_fame": 51890, "median_fame": 52230}
+      {"job_name": "소울브링어", "characters": 16, "average_fame": 51890, "median_fame": 52230, "iqr_fame": 920}
+    ],
+    "fame_bands": [
+      {"band": "50,000 미만", "characters": 0, "median_fame": null},
+      {"band": "50,000–51,999", "characters": 16, "median_fame": 51040},
+      {"band": "52,000–53,999", "characters": 44, "median_fame": 52760},
+      {"band": "54,000–55,999", "characters": 56, "median_fame": 54620},
+      {"band": "56,000 이상", "characters": 32, "median_fame": 56680}
+    ],
+    "equipment": [
+      {"item_name": "왜곡된 차원의 큐브", "characters": 92, "adoption_rate": 62.16, "median_fame": 55120, "jobs": 11},
+      {"item_name": "짙은 심연의 편린", "characters": 71, "adoption_rate": 47.97, "median_fame": 55840, "jobs": 9},
+      {"item_name": "불가침의 영역 장비", "characters": 39, "adoption_rate": 26.35, "median_fame": 56320, "jobs": 7}
+    ],
+    "timeline": [
+      {"event_name": "장비 강화", "events": 118, "characters": 74},
+      {"event_name": "장비 변경", "events": 63, "characters": 41},
+      {"event_name": "성장 이벤트", "events": 28, "characters": 19}
     ],
     "auctions": [
-      {"item_name": "짙은 심연의 편린", "observations": 42, "median_price": 1280000, "average_price": 1395000},
-      {"item_name": "왜곡된 차원의 큐브", "observations": 36, "median_price": 840000, "average_price": 910000},
-      {"item_name": "골든 베릴", "observations": 58, "median_price": 12500, "average_price": 13100},
-      {"item_name": "불가침의 영역 장비", "observations": 17, "median_price": 420000, "average_price": 510000}
+      {"item_name": "짙은 심연의 편린", "observations": 42, "median_price": 1280000, "average_price": 1395000, "price_iqr": 420000, "price_stddev": 520000, "price_cv": 0.41},
+      {"item_name": "왜곡된 차원의 큐브", "observations": 36, "median_price": 840000, "average_price": 910000, "price_iqr": 180000, "price_stddev": 210000, "price_cv": 0.23},
+      {"item_name": "골든 베릴", "observations": 58, "median_price": 12500, "average_price": 13100, "price_iqr": 1900, "price_stddev": 2600, "price_cv": 0.2},
+      {"item_name": "불가침의 영역 장비", "observations": 17, "median_price": 420000, "average_price": 510000, "price_iqr": 260000, "price_stddev": 320000, "price_cv": 0.63}
     ]
   },
   "cyphers": {
@@ -32,10 +62,15 @@
       {"character_name": "휴톤", "matches": 22, "win_rate": 45.5, "average_kills": 3.7, "average_assists": 6.8}
     ],
     "items": [
-      {"item_name": "공격킷", "matches": 82},
-      {"item_name": "방어킷", "matches": 77},
-      {"item_name": "가속킷", "matches": 64},
-      {"item_name": "회복킷", "matches": 53}
+      {"item_name": "공격킷", "matches": 82, "characters": 4, "win_rate": 54.9, "enough_sample": true},
+      {"item_name": "방어킷", "matches": 77, "characters": 5, "win_rate": 51.3, "enough_sample": true},
+      {"item_name": "가속킷", "matches": 64, "characters": 4, "win_rate": 50.8, "enough_sample": true},
+      {"item_name": "회복킷", "matches": 53, "characters": 3, "win_rate": 49.2, "enough_sample": true}
+    ],
+    "item_performance": [
+      {"character_name": "티엔", "item_name": "공격킷", "matches": 34, "win_rate": 61.8, "character_win_rate": 61.8, "lift_pp": 0, "enough_sample": true},
+      {"character_name": "테이", "item_name": "방어킷", "matches": 27, "win_rate": 55.6, "character_win_rate": 52.1, "lift_pp": 3.5, "enough_sample": true},
+      {"character_name": "린", "item_name": "회복킷", "matches": 6, "win_rate": 66.7, "character_win_rate": 48.7, "lift_pp": 18, "enough_sample": false}
     ]
   }
 }

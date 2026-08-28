@@ -129,25 +129,93 @@
         <section id="dnf" class="detail-section" data-detail="dnf" aria-labelledby="dnf-title">
           <div class="detail-heading">
             <div><p class="eyebrow">DUNGEON &amp; FIGHTER</p><h2 id="dnf-title">던파 성장과 시세</h2></div>
-            <p>직업별 성장 분포와 경매장 관측 가격을 확인합니다.</p>
+            <p>직업별 성장 격차가 장비 채택·명성 구간과 함께 나타나는지 확인합니다.</p>
           </div>
           <div class="detail-grid">
-            <div class="detail-stat"><span>직업 수</span><strong id="dnfJobCount">—</strong></div>
+            <div class="detail-stat"><span>분석 캐릭터</span><strong id="dnfJobCount">—</strong></div>
             <div class="detail-stat"><span>경매장 아이템</span><strong id="dnfAuctionCount">—</strong></div>
-            <div class="detail-stat"><span>데이터 원칙</span><strong>표본 우선</strong></div>
+            <div class="detail-stat"><span>이벤트 유형</span><strong id="dnfTimelineCount">—</strong></div>
           </div>
+          <div class="filter-bar">
+            <label for="dnfJobFilter">직업 검색</label>
+            <input id="dnfJobFilter" type="search" placeholder="예: 검귀" autocomplete="off" />
+            <label for="auctionSort">경매장 정렬</label>
+            <select id="auctionSort">
+              <option value="median">중앙 거래가</option>
+              <option value="volatility">변동계수</option>
+              <option value="observations">관측 수</option>
+            </select>
+          </div>
+          <div class="analysis-grid">
+            <article class="panel panel-large">
+              <div class="panel-heading"><div><span class="panel-index">01</span><h3>명성 구간별 캐릭터 수</h3></div><span class="panel-unit">DISTRIBUTION</span></div>
+              <div id="fameBandChart" class="bar-chart" aria-label="명성 구간별 캐릭터 수"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-heading"><div><span class="panel-index">02</span><h3>장비 채택과 명성</h3></div><span class="panel-unit">ADOPTION</span></div>
+              <div id="equipmentList" class="rank-list"></div>
+            </article>
+            <article class="panel panel-large">
+              <div class="panel-heading"><div><span class="panel-index">03</span><h3>경매장 가격과 변동성</h3></div><span class="panel-unit">MEDIAN / CV</span></div>
+              <div id="auctionTable" class="data-table"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-heading"><div><span class="panel-index">04</span><h3>타임라인 관측</h3></div><span class="panel-unit">EVENTS</span></div>
+              <div id="timelineList" class="rank-list"></div>
+            </article>
+          </div>
+          <div class="table-wrap">
+            <table id="jobTable">
+              <caption>직업별 명성 분포</caption>
+              <thead><tr><th scope="col">직업</th><th scope="col">캐릭터</th><th scope="col">중앙값</th><th scope="col">IQR</th><th scope="col">평균</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="analysis-note">해석: 관측된 명성 차이와 장비 채택의 동반 패턴만 제시하며, 장비가 성장을 일으켰다고 단정하지 않습니다.</p>
         </section>
 
         <section id="cyphers" class="detail-section" data-detail="cyphers" aria-labelledby="cyphers-title">
           <div class="detail-heading">
             <div><p class="eyebrow">CY.PHERS</p><h2 id="cyphers-title">사이퍼즈 경기 성과</h2></div>
-            <p>캐릭터 승률과 경기별 성과 지표를 확인합니다.</p>
+            <p>공식 표본의 캐릭터 승률과 아이템 조합의 관측 성과를 비교합니다.</p>
           </div>
           <div class="detail-grid">
             <div class="detail-stat"><span>분석 캐릭터</span><strong id="cyphersCharacterCount">—</strong></div>
             <div class="detail-stat"><span>아이템 종류</span><strong id="cyphersItemCount">—</strong></div>
-            <div class="detail-stat"><span>해석 범위</span><strong>기술통계</strong></div>
+            <div class="detail-stat"><span>최소 아이템 표본</span><strong id="cyphersMinItemMatches">—</strong></div>
           </div>
+          <div class="filter-bar">
+            <label for="cyphersMinMatches">캐릭터 최소 경기</label>
+            <select id="cyphersMinMatches">
+              <option value="0">전체</option>
+              <option value="10" selected>10경기</option>
+              <option value="20">20경기</option>
+            </select>
+            <label class="checkbox-label"><input id="cyphersEnoughOnly" type="checkbox" /> 충분한 표본만</label>
+          </div>
+          <div class="analysis-grid">
+            <article class="panel panel-large">
+              <div class="panel-heading"><div><span class="panel-index">01</span><h3>캐릭터별 승률과 경기 수</h3></div><span class="panel-unit">WIN RATE</span></div>
+              <div id="cyphersCharacterTable" class="data-table"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-heading"><div><span class="panel-index">02</span><h3>아이템별 관측</h3></div><span class="panel-unit">ITEM USAGE</span></div>
+              <div id="cyphersItemList" class="rank-list"></div>
+            </article>
+            <article class="panel panel-large">
+              <div class="panel-heading"><div><span class="panel-index">03</span><h3>캐릭터 기준 대비 아이템 성과</h3></div><span class="panel-unit">LIFT / PP</span></div>
+              <div id="cyphersItemPerformance" class="data-table"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-heading"><div><span class="panel-index">04</span><h3>해석 주의</h3></div><span class="panel-unit">CONTEXT</span></div>
+              <ul class="quality-list">
+                <li><span class="quality-dot"></span><span>아이템 성과는 캐릭터 기준 승률과 비교한 관측치입니다.</span></li>
+                <li><span class="quality-dot"></span><span>최소 표본 10경기 미만 조합은 후보 해석에서 제외합니다.</span></li>
+                <li><span class="quality-dot"></span><span>상위 랭커 표본을 전체 이용자 모집단으로 일반화하지 않습니다.</span></li>
+              </ul>
+            </article>
+          </div>
+          <p class="analysis-note">해석: 공식 랭킹과 상위 플레이어 표본이 어긋나는 지점을 후속 분석 대상으로 제시하며, 아이템 효과의 인과관계는 검증하지 않습니다.</p>
         </section>
 
         <div id="loadError" class="load-error" hidden>
