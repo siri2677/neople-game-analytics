@@ -9,7 +9,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY apps ./apps
-COPY web/data ./data
+COPY src ./src
+COPY web/data/demo.json /app/bootstrap/demo.json
 
 EXPOSE 8000
 CMD ["uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

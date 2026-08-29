@@ -1,8 +1,8 @@
-"""Read-only API for the static dashboard payload.
+"""Read-only API for the public dashboard payload.
 
-This service deliberately does not collect from Neople or expose API keys.
-The collector remains a separate local/CI data-preparation step, while this
-API only serves the reviewed dashboard JSON bundled or mounted into the image.
+The API process serves the reviewed JSON from the shared data volume (or the
+bundled demo payload). Collection runs in a separate Worker process using the
+same image, so API requests never need Neople credentials.
 """
 
 from __future__ import annotations
@@ -15,9 +15,16 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 
 
-DATA_DIR = Path(os.getenv("DASHBOARD_DATA_DIR", "/app/data"))
-DASHBOARD_PATH = DATA_DIR / "dashboard.json"
-DEMO_PATH = DATA_DIR / "demo.json"
+APP_ROOT = Path(os.getenv("APP_ROOT", "/app"))
+configured_dashboard_path = Path(
+    os.getenv("PUBLIC_DASHBOARD_PATH", "data/public/dashboard.json")
+)
+DASHBOARD_PATH = (
+    configured_dashboard_path
+    if configured_dashboard_path.is_absolute()
+    else APP_ROOT / configured_dashboard_path
+)
+DEMO_PATH = APP_ROOT / "bootstrap" / "demo.json"
 
 app = FastAPI(title="Neople Game Analytics API", version="1.0.0")
 

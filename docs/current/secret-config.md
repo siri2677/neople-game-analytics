@@ -2,20 +2,20 @@
 
 ## 기준
 
-현재 포트폴리오는 Power BI Embedded, Microsoft Entra, 관리형 PostgreSQL, Kubernetes 없이 **Python 수집기와 정적 웹 대시보드**로 운영한다.
+현재 포트폴리오는 Power BI Embedded, Microsoft Entra, 관리형 PostgreSQL 없이 **Python 수집기와 정적 웹 대시보드**로 운영한다. 배포 환경에서는 GitOps가 API/Web Deployment와 일일 Worker CronJob을 관리한다.
 
-따라서 웹사이트를 보여주기 위한 서버 시크릿은 필요하지 않다. API Key는 데이터를 수집할 때만 로컬에서 사용하고, 웹 브라우저에는 전달하지 않는다. 던파와 사이퍼즈는 게임별 API Key를 각각 발급·사용해야 하므로 하나의 공통 Key 변수로 관리하지 않는다.
+따라서 웹사이트를 보여주는 API/Web 프로세스에는 Neople Key가 필요하지 않다. 데이터 수집이 로컬에서 실행될 때는 `.env`를 사용하고, Kubernetes 자동 수집 Worker에서는 GitOps Secret을 사용한다. 어떤 경우에도 Key를 웹 브라우저에 전달하지 않는다. 던파와 사이퍼즈는 게임별 API Key를 각각 발급·사용해야 하므로 하나의 공통 Key 변수로 관리하지 않는다.
 
 Neople 공통 응답 코드에도 다른 게임용 Key를 사용하면 `API005(해당 게임으로 발급되지 않은 API Key)`가 반환될 수 있다고 안내되어 있다. 따라서 발급받은 Key가 어느 게임용인지 확인한 뒤 해당 변수에 넣는다. [Neople API 공통 가이드](https://developers.neople.co.kr/contents/guide/pages/all)와 [응답 코드 문서](https://developers.neople.co.kr/contents/guide/pages/code)를 참고한다.
 
 ## 현재 사용 환경변수
 
-### 시크릿: 반드시 로컬 `.env`에만 저장
+### 시크릿: 로컬 `.env` 또는 GitOps Secret File Variable에만 저장
 
 | 변수 | 필수 | 용도 | 저장 위치 |
 | --- | --- | --- | --- |
-| `DNF_API_KEY` | 던파 수집 시 필수 | 던파 REST API 인증 | 로컬 `.env`만 |
-| `CYPHERS_API_KEY` | 사이퍼즈 수집 시 필수 | 사이퍼즈 REST API 인증 | 로컬 `.env`만 |
+| `DNF_API_KEY` | 던파 수집 시 필수 | 던파 REST API 인증 | 로컬 `.env` 또는 GitOps Worker Secret |
+| `CYPHERS_API_KEY` | 사이퍼즈 수집 시 필수 | 사이퍼즈 REST API 인증 | 로컬 `.env` 또는 GitOps Worker Secret |
 
 `.env`는 `.gitignore`에 등록되어 있다. 실제 Key를 README, GitHub, HTML, JavaScript, `dashboard.json`에 작성하지 않는다.
 
@@ -94,6 +94,7 @@ CORS_ALLOW_ORIGINS
 | `python -m src.collect --game dnf` | `DNF_API_KEY` 필요 |
 | `python -m src.collect --game cyphers` | `CYPHERS_API_KEY` 필요 |
 | `python -m src.collect --game all` | 두 Key 모두 필요 |
+| GitOps Worker CronJob | GitOps 환경 Secret에 두 Key 필요 |
 | 생성된 정적 웹사이트 공개 | 불필요 |
 
 즉, 필요한 게임의 데이터를 수집하고 정제·검토해 공개용 `dashboard.json`을 만든 후에는 웹사이트가 API Key 없이도 동작한다.
@@ -114,13 +115,15 @@ rg -n "DNF_API_KEY|CYPHERS_API_KEY|POWERBI_CLIENT_SECRET|POSTGRES_PASSWORD|repla
 git status --short
 ```
 
-자동 수집 또는 데이터 준비를 CI에 추가하는 경우에도 `DNF_API_KEY`와 `CYPHERS_API_KEY`는 CI/CD Secret 변수로만 주입하고, 웹 산출물이나 로그에 출력하지 않는다. 현재 API/Web 이미지 빌드 Job은 Neople API Key를 사용하지 않는다. GitLab CI와 GitOps Push 변수는 [`ci-cd.md`](ci-cd.md)에 정리했다.
+자동 수집 또는 데이터 준비를 Worker CronJob에서 실행하는 경우 `DNF_API_KEY`와 `CYPHERS_API_KEY`는 GitOps의 환경별 Secret File Variable로만 주입하고, 웹 산출물이나 로그에 출력하지 않는다. API Deployment에는 이 Secret을 주입하지 않으며, API/Web 이미지 빌드 Job도 Neople API Key를 사용하지 않는다. GitLab CI와 GitOps Push 변수는 [`ci-cd.md`](ci-cd.md)에 정리했다.
+
+GitOps 저장소의 File Variable 이름과 SealedSecret 매핑은 [GitOps Secret 변수 문서](https://gitlab.com/lime985340/gitops/-/raw/feature/clean-gitops-layout/docs/secret-variables.md)를 따른다.
 
 ## 무료 공개 운영 원칙
 
 ```text
-DNF_API_KEY   = 던파 로컬 수집 단계에서만 사용
-CYPHERS_API_KEY = 사이퍼즈 로컬 수집 단계에서만 사용
+DNF_API_KEY   = 로컬 수집 또는 GitOps Worker에서만 사용
+CYPHERS_API_KEY = 로컬 수집 또는 GitOps Worker에서만 사용
 CSV/JSON      = 공개 전 비식별·집계 검토
 웹 브라우저   = 정적 JSON만 읽음
 Power BI      = 선택적 검증 도구

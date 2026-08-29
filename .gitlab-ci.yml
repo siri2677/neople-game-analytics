@@ -6,8 +6,8 @@ stages:
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  API_IMAGE: "$CI_REGISTRY_IMAGE/api"
-  WEB_IMAGE: "$CI_REGISTRY_IMAGE/web"
+  API_IMAGE: "registry.gitlab.com/lime985340/neople-game-analytics-api"
+  WEB_IMAGE: "registry.gitlab.com/lime985340/neople-game-analytics-web"
   # Keep these fixed like the Atmo service CI. Override only when the GitOps
   # repository layout is intentionally changed.
   GITOPS_REPO_HOST_PATH: "gitlab.com/lime985340/gitops.git"

@@ -8,10 +8,10 @@
 
 | 이미지 | 역할 |
 | --- | --- |
-| `api` | 검토된 `dashboard.json`을 `/api/dashboard`로 제공하고 `/healthz` 응답 |
+| `api` | 검토된 `dashboard.json`을 `/api/dashboard`로 제공하고 `/healthz` 응답. 동일 이미지를 Worker CronJob도 사용 |
 | `web` | Nginx로 HTML·CSS·JavaScript를 제공하고 `/api/dashboard`를 API에 프록시 |
 
-API 컨테이너는 Neople API를 직접 호출하지 않으며 API Key를 포함하지 않는다. 데이터 수집·정제는 로컬 또는 별도 승인된 데이터 준비 단계에서 실행한다. 데이터가 없을 때 이미지에는 저장소의 데모 JSON이 포함된다.
+API 컨테이너는 요청을 처리할 때 Neople API를 직접 호출하지 않으며 API Key를 포함하지 않는다. 같은 API 이미지를 사용하는 Worker CronJob이 Secret으로 주입된 Key를 사용해 수집·정제·공개 JSON 생성을 실행한다. 데이터가 없을 때 API 이미지에는 저장소의 데모 JSON이 포함된다.
 
 ## Atmo와 동일한 배포 흐름
 
@@ -21,7 +21,7 @@ feature 브랜치
 
 main 브랜치
   → Python 테스트·compile 검사
-  → API/Web Docker 이미지 한 번 빌드·Push (전체 커밋 SHA)
+  → API(Worker 겸용)/Web Docker 이미지 한 번 빌드·Push (전체 커밋 SHA)
   → GitOps 저장소 dev API/Web newTag 변경
   → Argo CD 또는 Flux 동기화
 
@@ -32,7 +32,7 @@ vMAJOR.MINOR.PATCH 태그
   → Argo CD 또는 Flux 동기화
 ```
 
-API와 Web은 두 이미지 모두 동일한 커밋 기준의 전체 SHA 태그를 사용한다. 릴리스 버전 태그는 Registry에 이미 Push된 SHA 이미지의 매니페스트를 가리키는 별칭이다.
+API(Worker 겸용)와 Web은 두 이미지 모두 동일한 커밋 기준의 전체 SHA 태그를 사용한다. 릴리스 버전 태그는 Registry에 이미 Push된 SHA 이미지의 매니페스트를 가리키는 별칭이다.
 
 - `main` 브랜치: `$CI_COMMIT_SHA`
 - SemVer Git tag: `$CI_COMMIT_TAG`를 기존 `$CI_COMMIT_SHA` 이미지에 추가
@@ -43,7 +43,7 @@ API와 Web은 두 이미지 모두 동일한 커밋 기준의 전체 SHA 태그�
 ## 저장소 파일
 
 - [`.gitlab-ci.yml`](../../.gitlab-ci.yml): 테스트, API/Web 이미지 빌드·Push, GitOps 태그 변경
-- [`Dockerfile.api`](../../Dockerfile.api): FastAPI 읽기 전용 API 이미지
+- [`Dockerfile.api`](../../Dockerfile.api): FastAPI API·Worker 공용 이미지
 - [`Dockerfile.web`](../../Dockerfile.web): Nginx 정적 Web 이미지
 - [`docker-compose.yml`](../../docker-compose.yml): API/Web 로컬 통합 실행 예시
 - [`apps/api/main.py`](../../apps/api/main.py): 대시보드 JSON API
@@ -54,7 +54,7 @@ API와 Web은 두 이미지 모두 동일한 커밋 기준의 전체 SHA 태그�
 
 GitLab Container Registry 관련 `CI_REGISTRY`, `CI_REGISTRY_IMAGE`, `CI_REGISTRY_USER`, `CI_REGISTRY_PASSWORD`는 GitLab 기본 제공 변수를 사용한다.
 
-GitOps 태그 변경 Job을 활성화하려면 다음 두 변수만 GitLab CI/CD Variables에 등록한다. 둘 다 Masked·Protected 설정을 권장한다.
+서비스 저장소의 GitOps 태그 변경 Job을 활성화하려면 다음 두 변수만 서비스 저장소의 GitLab CI/CD Variables에 등록한다. 둘 다 Protected 설정을 권장한다.
 
 | 변수 | 용도 |
 | --- | --- |
@@ -71,6 +71,27 @@ GITOPS_BRANCH: "feature/clean-gitops-layout"
 
 GitOps 구조가 `main`으로 병합된 뒤에는 CI 파일의 `GITOPS_BRANCH`만 `main`으로 변경한다. `GITOPS_ENVIRONMENT`는 사용자가 입력하지 않으며 CI가 `main → dev`, 릴리스 태그 `→ prod`로 자동 결정한다.
 
+Neople API Key는 서비스 저장소의 GitOps Push 변수와 별개로 `gitops` 저장소에
+환경별 File Variable로 등록한다. 임의의 문자열이나 예시 Key를 넣으면 Worker 호출이
+실패하므로 실제 발급값을 준비한 뒤 등록한다.
+
+```text
+NEOPLE_GAME_ANALYTICS_API_DEV_ENV
+NEOPLE_GAME_ANALYTICS_API_PROD_ENV
+```
+
+각 File Variable의 내용은 다음과 같다.
+
+```env
+DNF_API_KEY=<실제 던파 API Key>
+CYPHERS_API_KEY=<실제 사이퍼즈 API Key>
+```
+
+`SEALED_SECRETS_CERT`는 `gitops` 저장소의 SealedSecret 생성에 필요한 공개 인증서
+File Variable이고, `GITLAB_REGISTRY_USERNAME`·`GITLAB_REGISTRY_TOKEN`은 GitOps가
+API/Web 이미지를 Pull하기 위한 Group Variable이다. 이 값들의 등록 위치와 타입은
+[gitops Secret 변수 문서](https://gitlab.com/lime985340/gitops/-/raw/feature/clean-gitops-layout/docs/secret-variables.md)를 따른다.
+
 GitOps 저장소는 Atmo와 같은 다음 파일 구조를 제공해야 한다.
 
 ```text
@@ -81,13 +102,14 @@ workloads/neople-game-analytics/
 └─ web/environments/prod/kustomization.yaml
 ```
 
-각 `kustomization.yaml`에는 해당 이미지의 `newTag`가 있어야 한다. CI는 두 파일의 `newTag`를 동일한 이미지 태그로 바꾼다.
+각 `kustomization.yaml`에는 API와 Web 이미지의 `newTag`가 있어야 한다. Worker는 API 이미지와 동일한 이미지를 사용하므로 별도의 Worker 이미지 태그를 두지 않는다. CI는 두 파일의 API/Web `newTag`를 동일한 이미지 태그로 바꾼다.
 
 ## 데이터와 Secret 경계
 
-- `DNF_API_KEY`, `CYPHERS_API_KEY`는 API/Web 이미지에 넣지 않는다.
+- `DNF_API_KEY`, `CYPHERS_API_KEY`는 이미지에 넣지 않는다.
 - 이미지 빌드 과정에서 API Key를 Docker build argument나 파일로 전달하지 않는다.
-- API/Web은 이미지에 포함된 공개 검토 JSON 또는 마운트된 JSON만 읽는다.
+- API는 GitOps PVC의 공개 검토 JSON 또는 이미지의 데모 JSON만 읽으며, Neople Secret을 주입하지 않는다.
+- Worker는 GitOps Secret에서 Key를 받고, 같은 PVC의 `data/public/dashboard.json`을 갱신한다.
 - API Key를 사용하는 실데이터 수집은 [게임별 API Key 문서](api-key-separation.md)의 절차를 따른다.
 - `dashboard.json`은 공개 전 닉네임·Player ID·원천 응답 포함 여부를 검토한다.
 
