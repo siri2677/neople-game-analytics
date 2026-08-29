@@ -16,21 +16,29 @@ API 컨테이너는 Neople API를 직접 호출하지 않으며 API Key를 포�
 ## Atmo와 동일한 배포 흐름
 
 ```text
-GitLab CI
+feature 브랜치
   → Python 테스트·compile 검사
-  → API Docker 이미지 빌드·Push
-  → Web Docker 이미지 빌드·Push
-  → GitOps 저장소 API/Web Kustomize newTag 변경
+
+main 브랜치
+  → Python 테스트·compile 검사
+  → API/Web Docker 이미지 한 번 빌드·Push (전체 커밋 SHA)
+  → GitOps 저장소 dev API/Web newTag 변경
   → Argo CD 또는 Flux 동기화
-  → Kubernetes API + Web 배포
+
+vMAJOR.MINOR.PATCH 태그
+  → main 커밋의 SHA 이미지 존재 여부 확인
+  → API/Web에 버전 태그만 추가 (재빌드하지 않음)
+  → GitOps 저장소 prod API/Web newTag 변경
+  → Argo CD 또는 Flux 동기화
 ```
 
-이미지는 두 개 모두 동일한 커밋 기준 태그를 사용한다.
+API와 Web은 두 이미지 모두 동일한 커밋 기준의 전체 SHA 태그를 사용한다. 릴리스 버전 태그는 Registry에 이미 Push된 SHA 이미지의 매니페스트를 가리키는 별칭이다.
 
-- `dev` 브랜치: `dev-$CI_COMMIT_SHORT_SHA`
-- SemVer Git tag: `vMAJOR.MINOR.PATCH`
+- `main` 브랜치: `$CI_COMMIT_SHA`
+- SemVer Git tag: `$CI_COMMIT_TAG`를 기존 `$CI_COMMIT_SHA` 이미지에 추가
+- Feature 브랜치: 테스트만 실행하며 이미지·GitOps 배포를 만들지 않음
 
-GitOps 커밋에는 `[skip ci]`를 넣어 GitOps 저장소의 검증 파이프라인이 불필요하게 반복되지 않게 한다.
+릴리스 Job은 `docker buildx imagetools create`로 API/Web의 버전 태그를 추가한다. 이 명령은 기존 Registry 매니페스트를 재사용하므로 Dockerfile을 다시 빌드하지 않는다. 릴리스 전후 매니페스트 Digest가 같은지도 확인한다. GitOps 커밋에는 `[skip ci]`를 넣어 GitOps 저장소의 검증 파이프라인이 불필요하게 반복되지 않게 한다.
 
 ## 저장소 파일
 
@@ -46,15 +54,22 @@ GitOps 커밋에는 `[skip ci]`를 넣어 GitOps 저장소의 검증 파이프�
 
 GitLab Container Registry 관련 `CI_REGISTRY`, `CI_REGISTRY_IMAGE`, `CI_REGISTRY_USER`, `CI_REGISTRY_PASSWORD`는 GitLab 기본 제공 변수를 사용한다.
 
-GitOps 태그 변경 Job을 활성화하려면 다음 변수를 GitLab CI/CD Variables에 등록한다.
+GitOps 태그 변경 Job을 활성화하려면 다음 두 변수만 GitLab CI/CD Variables에 등록한다. 둘 다 Masked·Protected 설정을 권장한다.
 
 | 변수 | 용도 |
 | --- | --- |
-| `GITOPS_REPO_HOST_PATH` | GitOps 저장소의 호스트 경로. 예: `gitlab.com/group/gitops.git` |
 | `GITOPS_PUSH_TOKEN` | GitOps 저장소 Push 권한이 있는 토큰. Masked·Protected 권장 |
 | `GITOPS_PUSH_TOKEN_USER` | 토큰에 대응하는 사용자명 |
-| `GITOPS_BRANCH` | GitOps 대상 브랜치. 예: `feature/clean-gitops-layout` 또는 `main` |
-| `GITOPS_APP_PATH` | API/Web 환경 디렉터리의 기준 경로. 기본값: `workloads/neople-game-analytics` |
+
+GitOps 저장소 주소, 앱 경로, 현재 대상 브랜치는 `.gitlab-ci.yml`에 Atmo와 같은 방식으로 고정한다.
+
+```yaml
+GITOPS_REPO_HOST_PATH: "gitlab.com/lime985340/gitops.git"
+GITOPS_APP_PATH: "workloads/neople-game-analytics"
+GITOPS_BRANCH: "feature/clean-gitops-layout"
+```
+
+GitOps 구조가 `main`으로 병합된 뒤에는 CI 파일의 `GITOPS_BRANCH`만 `main`으로 변경한다. `GITOPS_ENVIRONMENT`는 사용자가 입력하지 않으며 CI가 `main → dev`, 릴리스 태그 `→ prod`로 자동 결정한다.
 
 GitOps 저장소는 Atmo와 같은 다음 파일 구조를 제공해야 한다.
 
@@ -78,7 +93,7 @@ workloads/neople-game-analytics/
 
 ## 현재 브랜치에서의 실행 조건
 
-이 저장소의 원격 기본 주소는 GitHub지만, `.gitlab-ci.yml`은 GitLab으로 미러링된 서비스 저장소에서 실행하는 구성이다. GitLab 프로젝트에 연결되지 않은 상태에서는 파일을 커밋해도 CI가 자동 실행되지 않는다.
+이 저장소의 원격 기본 주소는 GitHub지만, `.gitlab-ci.yml`은 GitLab으로 미러링된 서비스 저장소에서 실행하는 구성이다. GitLab 프로젝트에 연결되지 않은 상태에서는 파일을 커밋해도 CI가 자동 실행되지 않는다. 현재 CI 파일은 Atmo GitOps의 테스트 브랜치인 `feature/clean-gitops-layout`을 기본 대상으로 둔다.
 
 로컬에는 Docker/Kubernetes 실행 도구가 없어 이미지 빌드와 클러스터 동기화는 GitLab Runner와 실제 GitOps/Argo CD 환경에서 검증한다. Python 테스트는 다음 명령으로 검증한다.
 
