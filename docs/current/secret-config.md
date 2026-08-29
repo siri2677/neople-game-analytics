@@ -114,7 +114,7 @@ rg -n "DNF_API_KEY|CYPHERS_API_KEY|POWERBI_CLIENT_SECRET|POSTGRES_PASSWORD|repla
 git status --short
 ```
 
-GitHub Actions로 자동 수집을 추가하는 경우에도 `DNF_API_KEY`와 `CYPHERS_API_KEY`는 GitHub Actions Secret으로만 주입하고, 웹 산출물이나 로그에 출력하지 않는다. 현재 계획에는 자동 수집 배포를 필수로 포함하지 않는다.
+자동 수집 또는 데이터 준비를 CI에 추가하는 경우에도 `DNF_API_KEY`와 `CYPHERS_API_KEY`는 CI/CD Secret 변수로만 주입하고, 웹 산출물이나 로그에 출력하지 않는다. 현재 API/Web 이미지 빌드 Job은 Neople API Key를 사용하지 않는다. GitLab CI와 GitOps Push 변수는 [`ci-cd.md`](ci-cd.md)에 정리했다.
 
 ## 무료 공개 운영 원칙
 

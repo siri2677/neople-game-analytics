@@ -10,7 +10,7 @@
 - 사이퍼즈 40%
   - 캐릭터별 승률·승리·킬·도움
   - 매칭 상세 정보에서 확인 가능한 아이템 사용 패턴
-- 최종 시각화: Power BI + 정적 웹 대시보드
+- 최종 시각화: 자체 정적 웹 대시보드 (Power BI Desktop은 선택적 검증용)
 
 ## 데이터 흐름
 
@@ -20,7 +20,8 @@ Neople REST API
     -> data/raw JSON 원천 보관
     -> Python 정제
     -> data/processed CSV
-    -> Power BI 모델·대시보드
+    -> src.web_export
+    -> 정적 Web/API 대시보드
 ```
 
 API는 SQL을 직접 제공하지 않으므로, API 응답을 원천 데이터로 저장한 뒤 PostgreSQL 또는 Power BI에 적합한 형태로 정제합니다. 이 저장·정제·분석 과정을 포트폴리오의 핵심으로 보여줍니다.
@@ -101,6 +102,8 @@ python -m http.server 8000 --directory web
 API Key는 이 채팅이나 GitHub에 올리지 않습니다. `.env`는 `.gitignore`에 등록되어 있으며, 공유가 필요한 경우 `.env.example`만 사용합니다.
 
 현재 방식에서 필요한 게임별 시크릿과 사용하지 않는 이전 설정은 [`docs/current/secret-config.md`](docs/current/secret-config.md)에 정리했습니다.
+
+컨테이너 배포가 필요한 경우의 API/Web 이미지 빌드와 Atmo식 GitOps 태그 업데이트는 [`docs/current/ci-cd.md`](docs/current/ci-cd.md)에 정리했습니다.
 
 네오플 API의 제공 범위·호출 제한·약관은 변경될 수 있으므로 공개 대시보드나 원천 데이터 배포 전 공식 문서를 확인합니다.
 

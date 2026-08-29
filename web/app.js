@@ -1,4 +1,4 @@
-const DATA_PATHS = ["data/dashboard.json", "data/demo.json"];
+const DATA_PATHS = ["/api/dashboard", "data/dashboard.json", "data/demo.json"];
 
 const $ = (selector) => document.querySelector(selector);
 

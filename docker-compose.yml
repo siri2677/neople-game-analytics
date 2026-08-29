@@ -1,0 +1,16 @@
+services:
+  neople-game-analytics-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    expose:
+      - "8000"
+
+  neople-game-analytics-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    depends_on:
+      - neople-game-analytics-api
+    ports:
+      - "8080:8080"

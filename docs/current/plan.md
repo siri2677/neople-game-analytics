@@ -49,12 +49,12 @@ GitHub Pages는 공개 저장소에서 무료로 사용할 수 있다. 실제 �
 - Power BI Embedded 또는 Fabric Capacity
 - Power BI Embed Token API와 Microsoft Entra 인증
 - 관리형 PostgreSQL을 필수 인프라로 사용
-- Kubernetes, Docker 운영 클러스터, GitLab CI/GitOps
+- Power BI용 Kubernetes, PostgreSQL 운영 클러스터, Entra 인증 서버
 - 웹 브라우저에서 Neople API 직접 호출
 - 공개 웹에 API Key 또는 원천 플레이어 식별정보 노출
 - Power BI의 모든 기능을 웹에서 복제
 
-이 제한을 지키면 웹 공개 비용은 0원으로 유지할 수 있다. Power BI Report 자체를 공개 웹에 임베드하는 `Publish to web`은 인증 없이 데이터가 공개될 수 있고, Embed Code 생성에 Pro/PPU 조건이 붙을 수 있으므로 기본 경로로 선택하지 않는다.
+이 제한을 지키면 분석 데이터와 Power BI에는 불필요한 운영 비용을 만들지 않으면서, 기존 Atmo 인프라를 활용하는 경우에 한해 API/Web 컨테이너 CI와 GitOps 배포 흐름을 추가할 수 있다. Power BI Report 자체를 공개 웹에 임베드하는 `Publish to web`은 인증 없이 데이터가 공개될 수 있고, Embed Code 생성에 Pro/PPU 조건이 붙을 수 있으므로 기본 경로로 선택하지 않는다.
 
 ## 4. 구현 범위
 
@@ -97,6 +97,8 @@ Neople REST API
 ```
 
 Power BI Desktop은 `data/processed/*.csv`를 사용한다. 웹 화면은 `dashboard.json`을 사용하므로 Power BI Service와의 실시간 연결은 필요하지 않다.
+
+컨테이너 배포가 필요한 환경에서는 동일한 Web 화면을 `Dockerfile.web`로 패키징하고, 대시보드 JSON을 제공하는 읽기 전용 `Dockerfile.api`를 함께 빌드한다. GitLab CI와 GitOps 태그 업데이트 절차는 [`ci-cd.md`](ci-cd.md)에 정리한다.
 
 ## 6. 분석 질문
 
@@ -190,6 +192,7 @@ AI가 생성한 문장을 그대로 결론으로 사용하지 않으며, 데이�
 - 실제 공개 전 `dashboard.json`의 식별자·원천 응답·비밀값 검사
 - GitHub Pages로 `web/` 배포
 - README에 공개 URL과 실행 방법 연결
+- 컨테이너 배포가 필요한 경우 GitLab CI의 API/Web 이미지 빌드와 GitOps 태그 변경 검증
 
 ## 9. 완료 기준
 
@@ -211,6 +214,8 @@ AI가 생성한 문장을 그대로 결론으로 사용하지 않으며, 데이�
 Power BI Desktop = 분석 검증용
 GitHub README    = 분석 과정·기술 설명
 GitHub Pages     = 공개 웹 결과물
+GitLab CI        = API/Web 이미지 테스트·빌드·Push
+GitOps           = API/Web 이미지 태그 관리
 ```
 
 Power BI Service Embedded는 비용·인프라·보안 범위가 커서 이번 포트폴리오의 필수 범위에서 제외한다.
