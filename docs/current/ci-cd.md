@@ -54,22 +54,28 @@ API(Worker 겸용)와 Web은 두 이미지 모두 동일한 커밋 기준의 전
 
 GitLab Container Registry 관련 `CI_REGISTRY`, `CI_REGISTRY_IMAGE`, `CI_REGISTRY_USER`, `CI_REGISTRY_PASSWORD`는 GitLab 기본 제공 변수를 사용한다.
 
-서비스 저장소의 GitOps 태그 변경 Job을 활성화하려면 다음 두 변수만 서비스 저장소의 GitLab CI/CD Variables에 등록한다. 둘 다 Protected 설정을 권장한다.
+서비스 저장소의 GitOps 태그 변경 Job은 `lime985340` Group에서 다음 세 변수를
+상속한다. 서비스 프로젝트에 같은 변수를 다시 만들지 않는다.
 
 | 변수 | 용도 |
 | --- | --- |
 | `GITOPS_PUSH_TOKEN` | GitOps 저장소 Push 권한이 있는 토큰. Masked·Protected 권장 |
 | `GITOPS_PUSH_TOKEN_USER` | 토큰에 대응하는 사용자명 |
+| `GITOPS_BRANCH` | 현재 GitOps 대상 브랜치. `feature/clean-gitops-layout` 또는 `main` |
 
-GitOps 저장소 주소, 앱 경로, 현재 대상 브랜치는 `.gitlab-ci.yml`에 Atmo와 같은 방식으로 고정한다.
+GitOps 저장소 주소와 앱 경로는 서비스마다 다르므로 `.gitlab-ci.yml`에 고정한다.
+GitOps 대상 브랜치는 Atmo와 Neople 서비스가 공통으로 상속하는 `lime985340`
+Group Variable `GITOPS_BRANCH` 하나로 관리한다.
 
 ```yaml
 GITOPS_REPO_HOST_PATH: "gitlab.com/lime985340/gitops.git"
 GITOPS_APP_PATH: "workloads/neople-game-analytics"
-GITOPS_BRANCH: "feature/clean-gitops-layout"
 ```
 
-GitOps 구조가 `main`으로 병합된 뒤에는 CI 파일의 `GITOPS_BRANCH`만 `main`으로 변경한다. `GITOPS_ENVIRONMENT`는 사용자가 입력하지 않으며 CI가 `main → dev`, 릴리스 태그 `→ prod`로 자동 결정한다.
+현재 `lime985340` Group Variable `GITOPS_BRANCH`는 `feature/clean-gitops-layout`을
+가리킨다. GitOps 구조가 `main`으로 병합된 뒤 Group Variable 값만 `main`으로
+변경한다. `GITOPS_ENVIRONMENT`는 사용자가 입력하지 않으며 CI가 `main → dev`,
+릴리스 태그 `→ prod`로 자동 결정한다.
 
 기존 `lime985340` Group Variable을 서비스 저장소와 `gitops` 저장소가 상속하고
 있다면 Registry 인증, Sealed Secrets 인증서, GitOps Push 인증 변수는 새로 만들지
@@ -78,8 +84,8 @@ GitOps 구조가 `main`으로 병합된 뒤에는 CI 파일의 `GITOPS_BRANCH`�
 실패하므로 실제 발급값을 준비한 뒤 등록한다.
 
 ```text
-NEOPLE_GAME_ANALYTICS_API_DEV_ENV
-NEOPLE_GAME_ANALYTICS_API_PROD_ENV
+NEOPLE_API_DEV_ENV
+NEOPLE_API_PROD_ENV
 ```
 
 각 File Variable의 내용은 다음과 같다.
@@ -89,9 +95,11 @@ DNF_API_KEY=<실제 던파 API Key>
 CYPHERS_API_KEY=<실제 사이퍼즈 API Key>
 ```
 
-`SEALED_SECRETS_CERT`, `GITLAB_REGISTRY_USERNAME`, `GITLAB_REGISTRY_TOKEN`,
-`GITOPS_PUSH_TOKEN`, `GITOPS_PUSH_TOKEN_USER`는 기존 `lime985340` Group Variable을
-그대로 사용한다. 변수 상속이 실제로 활성화되어 있는지만 확인한다. 자세한 매핑은
+`GITOPS_PUSH_TOKEN`, `GITOPS_PUSH_TOKEN_USER`, `GITOPS_BRANCH`는 기존
+`lime985340` Group Variable을 그대로 사용한다. `SEALED_SECRETS_CERT`,
+`GITLAB_REGISTRY_USERNAME`, `GITLAB_REGISTRY_TOKEN`은 현재 `gitops` 프로젝트에
+등록된 공통 GitOps 운영 변수다. 변수 상속과 프로젝트 범위가 의도한 상태인지
+확인한다. 자세한 매핑은
 [gitops Secret 변수 문서](https://gitlab.com/lime985340/gitops/-/raw/feature/clean-gitops-layout/docs/secret-variables.md)를 따른다.
 
 GitOps 저장소는 Atmo와 같은 다음 파일 구조를 제공해야 한다.
