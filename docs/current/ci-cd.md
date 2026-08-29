@@ -71,8 +71,10 @@ GITOPS_BRANCH: "feature/clean-gitops-layout"
 
 GitOps 구조가 `main`으로 병합된 뒤에는 CI 파일의 `GITOPS_BRANCH`만 `main`으로 변경한다. `GITOPS_ENVIRONMENT`는 사용자가 입력하지 않으며 CI가 `main → dev`, 릴리스 태그 `→ prod`로 자동 결정한다.
 
-Neople API Key는 서비스 저장소의 GitOps Push 변수와 별개로 `gitops` 저장소에
-환경별 File Variable로 등록한다. 임의의 문자열이나 예시 Key를 넣으면 Worker 호출이
+기존 `lime985340` Group Variable을 서비스 저장소와 `gitops` 저장소가 상속하고
+있다면 Registry 인증, Sealed Secrets 인증서, GitOps Push 인증 변수는 새로 만들지
+않는다. 이 애플리케이션 때문에 새로 추가할 값은 `gitops` 저장소의 Neople 전용
+환경별 File Variable 2개뿐이다. 임의의 문자열이나 예시 Key를 넣으면 Worker 호출이
 실패하므로 실제 발급값을 준비한 뒤 등록한다.
 
 ```text
@@ -87,9 +89,9 @@ DNF_API_KEY=<실제 던파 API Key>
 CYPHERS_API_KEY=<실제 사이퍼즈 API Key>
 ```
 
-`SEALED_SECRETS_CERT`는 `gitops` 저장소의 SealedSecret 생성에 필요한 공개 인증서
-File Variable이고, `GITLAB_REGISTRY_USERNAME`·`GITLAB_REGISTRY_TOKEN`은 GitOps가
-API/Web 이미지를 Pull하기 위한 Group Variable이다. 이 값들의 등록 위치와 타입은
+`SEALED_SECRETS_CERT`, `GITLAB_REGISTRY_USERNAME`, `GITLAB_REGISTRY_TOKEN`,
+`GITOPS_PUSH_TOKEN`, `GITOPS_PUSH_TOKEN_USER`는 기존 `lime985340` Group Variable을
+그대로 사용한다. 변수 상속이 실제로 활성화되어 있는지만 확인한다. 자세한 매핑은
 [gitops Secret 변수 문서](https://gitlab.com/lime985340/gitops/-/raw/feature/clean-gitops-layout/docs/secret-variables.md)를 따른다.
 
 GitOps 저장소는 Atmo와 같은 다음 파일 구조를 제공해야 한다.
