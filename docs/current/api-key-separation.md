@@ -60,7 +60,7 @@ python -m src.collect --game dnf --dry-run
 python -m src.collect --game dnf
 ```
 
-사이퍼즈 데이터는 사이퍼즈용 Key와 닉네임 또는 Player ID를 설정한 후 별도로 수집한다.
+사이퍼즈 데이터는 사이퍼즈용 Key만 설정하면 된다. 수집기는 공식 랭킹 API에서 제한된 상위 표본의 Player ID를 자동으로 가져온 뒤 매칭 기록을 조회한다. 사용자가 자신의 닉네임이나 Player ID를 입력할 필요가 없다.
 
 ```powershell
 python -m src.collect --game cyphers --dry-run

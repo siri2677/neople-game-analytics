@@ -1,7 +1,8 @@
 """Collect a bounded, reproducible sample from DNF and Cyphers APIs.
 
-The collector intentionally requires an explicit target list or bounded fame bands.
-It does not crawl the whole service.
+The collector intentionally uses bounded fame bands for DNF and a bounded
+official-ranking sample for Cyphers. It does not crawl the whole service or
+require a user's personal nickname/player ID.
 """
 
 from __future__ import annotations
@@ -88,8 +89,8 @@ def collect_dnf(client: NeopleClient, dry_run: bool = False) -> None:
 
 
 def collect_cyphers(client: NeopleClient, dry_run: bool = False) -> None:
-    player_ids = csv_env("CYPHERS_PLAYER_IDS")
-    nicknames = csv_env("CYPHERS_NICKNAMES")
+    ranking_offset = int(env("CYPHERS_RANKING_OFFSET", "0"))
+    ranking_limit = int(env("CYPHERS_RANKING_LIMIT", "30"))
     game_type = env("CYPHERS_GAME_TYPE", "rating")
     end_date = env("CYPHERS_END_DATE") or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
     start_date = env("CYPHERS_START_DATE") or (
@@ -98,19 +99,22 @@ def collect_cyphers(client: NeopleClient, dry_run: bool = False) -> None:
     match_limit = int(env("CYPHERS_MATCH_LIMIT", "50"))
     detail_limit = int(env("CYPHERS_MATCH_DETAIL_LIMIT", "100"))
 
-    for nickname in nicknames:
-        params = {"nickname": nickname, "wordType": "match", "limit": 10}
-        if dry_run:
-            print("Cyphers player search", params)
-        else:
-            payload = client.get("/cy/players", params)
-            write_raw("cyphers", "players", f"player_search_{nickname}", params, payload)
-            for player in rows(payload, "rows"):
-                if player.get("playerId") and player["playerId"] not in player_ids:
-                    player_ids.append(player["playerId"])
+    ranking_params = {"offset": ranking_offset, "limit": ranking_limit}
+    if dry_run:
+        print("Cyphers official ranking sample", ranking_params)
+        print("Cyphers matches: player IDs will be read from the ranking response")
+        return
+
+    ranking_payload = client.get("/cy/ranking/ratingpoint", ranking_params)
+    write_raw("cyphers", "ranking", "ratingpoint", ranking_params, ranking_payload)
+    player_ids: list[str] = []
+    for ranking in rows(ranking_payload, "rows"):
+        player_id = ranking.get("playerId")
+        if player_id and player_id not in player_ids:
+            player_ids.append(player_id)
 
     if not player_ids:
-        print("Cyphers: no player IDs configured; set CYPHERS_PLAYER_IDS or CYPHERS_NICKNAMES")
+        print("Cyphers: no player IDs returned by the official ranking API")
         return
 
     match_ids: list[str] = []

@@ -27,8 +27,8 @@ Neople 공통 응답 코드에도 다른 게임용 Key를 사용하면 `API005(�
 | `DNF_FAME_BANDS` | `50000:52000,52000:54000,54000:56000` | 명성 검색 구간 |
 | `DNF_SAMPLE_LIMIT` | `30` | 구간별 캐릭터 표본 수 |
 | `DNF_AUCTION_ITEM_LIMIT` | `30` | 경매장 조회 아이템 수 |
-| `CYPHERS_NICKNAMES` | 빈 값 | 사이퍼즈 닉네임 검색 대상 |
-| `CYPHERS_PLAYER_IDS` | 빈 값 | 사이퍼즈 Player ID 대상 |
+| `CYPHERS_RANKING_OFFSET` | `0` | 공식 랭킹 표본 시작 위치 |
+| `CYPHERS_RANKING_LIMIT` | `30` | 공식 랭킹에서 자동으로 가져올 상위 표본 수 |
 | `CYPHERS_GAME_TYPE` | `rating` | 공식전/일반전 구분 |
 | `CYPHERS_START_DATE` | 최근 30일 자동 | 수집 시작 시각 |
 | `CYPHERS_END_DATE` | 현재 시각 자동 | 수집 종료 시각 |
@@ -50,9 +50,9 @@ DNF_FAME_BANDS=50000:52000,52000:54000,54000:56000
 DNF_SAMPLE_LIMIT=30
 DNF_AUCTION_ITEM_LIMIT=30
 
-# 닉네임 또는 Player ID 중 하나를 설정
-CYPHERS_NICKNAMES=
-CYPHERS_PLAYER_IDS=
+# 공식 랭킹에서 사이퍼즈 상위 표본을 자동 수집
+CYPHERS_RANKING_OFFSET=0
+CYPHERS_RANKING_LIMIT=30
 CYPHERS_GAME_TYPE=rating
 CYPHERS_START_DATE=
 CYPHERS_END_DATE=
